@@ -1,7 +1,5 @@
 package com.example.mad_finals_wurmple
 
-package com.example.mad_finals_wurmple;
-
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
