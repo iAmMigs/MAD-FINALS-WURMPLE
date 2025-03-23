@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "903659500717",
+    "project_id": "mad-finals-wurmple",
+    "storage_bucket": "mad-finals-wurmple.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:903659500717:android:c71dd14ca7a5b9a0de4224",
+        "android_client_info": {
+          "package_name": "com.example.mad_finals_wurmple"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRKuFrDZWDsFsQuhYtOhXsDsrt9qvP5PQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
