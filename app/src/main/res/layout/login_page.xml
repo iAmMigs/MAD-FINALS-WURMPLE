@@ -65,15 +65,15 @@
             android:id="@+id/forgotPassButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="80dp"
+            android:layout_marginLeft="65dp"
             android:background="@android:color/transparent"
-            android:paddingLeft="25dp"
-            android:paddingRight="35dp"
             android:padding="14dp"
-            android:text="Forgot Password?"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:text="Forgot Password? "
             android:textAlignment="center"
             android:textColor="#000000"
-            android:textSize="20dp" />
+            android:textSize="16dp" />
         <Button
             android:id="@+id/loginButton"
             android:layout_width="wrap_content"
