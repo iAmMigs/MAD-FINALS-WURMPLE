@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gcm_defaultSenderId" translatable="false">903659500717</string>
+    <string name="google_api_key" translatable="false">AIzaSyCRKuFrDZWDsFsQuhYtOhXsDsrt9qvP5PQ</string>
+    <string name="google_app_id" translatable="false">1:903659500717:android:c71dd14ca7a5b9a0de4224</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyCRKuFrDZWDsFsQuhYtOhXsDsrt9qvP5PQ</string>
+    <string name="google_storage_bucket" translatable="false">mad-finals-wurmple.firebasestorage.app</string>
+    <string name="project_id" translatable="false">mad-finals-wurmple</string>
+</resources>
