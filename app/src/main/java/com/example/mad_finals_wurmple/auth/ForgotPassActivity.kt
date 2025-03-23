@@ -1,4 +1,4 @@
-package com.example.mad_finals_wurmple
+package com.example.mad_finals_wurmple.auth
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,8 +8,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import com.example.mad_finals_wurmple.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 
