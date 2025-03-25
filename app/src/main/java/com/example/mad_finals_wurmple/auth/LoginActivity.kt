@@ -1,20 +1,15 @@
-package com.example.mad_finals_wurmple
+package com.example.mad_finals_wurmple.auth
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import com.example.mad_finals_wurmple.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
-import com.google.firebase.auth.FirebaseAuthUserCollisionException
-import com.google.firebase.auth.FirebaseAuthWeakPasswordException
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
 
 class loginActivity : AppCompatActivity() {
 
@@ -57,7 +52,7 @@ class loginActivity : AppCompatActivity() {
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this, menuActivity::class.java))
+                        // startActivity(Intent(this, menuActivity::class.java))
                         finish()
                     } else {
                         val errorMessage = when (task.exception) {

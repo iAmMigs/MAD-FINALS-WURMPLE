@@ -13,15 +13,15 @@
         android:theme="@style/Theme.MADFINALSWURMPLE"
         tools:targetApi="31">
         <activity
-            android:name=".forgotPassActivity"
+            android:name=".auth.forgotPassActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".signupActivity"
+            android:name=".auth.signupActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".loginActivity"
+            android:name=".auth.loginActivity"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>
