@@ -10,6 +10,7 @@ import com.example.mad_finals_wurmple.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.example.mad_finals_wurmple.dashboard
 
 class loginActivity : AppCompatActivity() {
 
@@ -52,7 +53,7 @@ class loginActivity : AppCompatActivity() {
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show()
-                        // startActivity(Intent(this, menuActivity::class.java))
+                        startActivity(Intent(this, dashboardActivity::class.java))
                         finish()
                     } else {
                         val errorMessage = when (task.exception) {
