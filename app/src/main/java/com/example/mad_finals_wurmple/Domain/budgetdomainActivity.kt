@@ -1,9 +1,9 @@
-package com.example.mad_finals_wurmple.domain
+package com.example.mad_finals_wurmple.Domain
 
 import android.os.Parcel
 import android.os.Parcelable
 
-data class budgetDomainActivity(
+data class budgetdomainActivity(
     val title:String="",
     val price:Double=0.0,
     val percent:Double=0.0
@@ -25,12 +25,12 @@ data class budgetDomainActivity(
         return 0
     }
 
-    companion object CREATOR : Parcelable.Creator<budgetDomainActivity> {
-        override fun createFromParcel(parcel: Parcel): budgetDomainActivity {
-            return budgetDomainActivity(parcel)
+    companion object CREATOR : Parcelable.Creator<budgetdomainActivity> {
+        override fun createFromParcel(parcel: Parcel): budgetdomainActivity {
+            return budgetdomainActivity(parcel)
         }
 
-        override fun newArray(size: Int): Array<budgetDomainActivity?> {
+        override fun newArray(size: Int): Array<budgetdomainActivity?> {
             return arrayOfNulls(size)
         }
     }
