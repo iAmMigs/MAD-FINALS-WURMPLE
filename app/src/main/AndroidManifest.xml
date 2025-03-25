@@ -21,6 +21,10 @@
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".dashboard.dashboardActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".auth.loginActivity"
             android:exported="true"
             android:screenOrientation="portrait">

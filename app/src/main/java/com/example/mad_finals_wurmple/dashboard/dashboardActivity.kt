@@ -1,33 +1,31 @@
-package com.example.mad_finals_wurmple.dashboard
-
-import android.util.Log
-import com.google.firebase.firestore.FieldValue
-
+import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.ProgressBar
-import android.widget.TextView
-import android.widget.Toast
-import androidx.activity.ComponentActivity
+import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
+import com.example.mad_finals_wurmple.R
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
-import java.text.NumberFormat
-import java.util.Locale
-import com.example.mad_finals_wurmple.R
+import com.google.firebase.firestore.FieldValue
+import java.util.*
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
+
     private lateinit var db: FirebaseFirestore
-
-    // UI Components
-    private lateinit var usernameText: TextView
-    private lateinit var balanceText: TextView
+    private lateinit var usernameTxt: TextView
+    private lateinit var balanceTxt: TextView
     private lateinit var progressBar: ProgressBar
     private lateinit var progressCircle: CircularProgressIndicator
+    private lateinit var etAmount: EditText
+    private lateinit var spinnerTransactionType: Spinner
+    private lateinit var btnConfirm: Button
+    private lateinit var btnDelete: Button
+    private lateinit var viewTransactionBtn: Button
+    private lateinit var goalEditText: EditText
+    private lateinit var btnAddGoal: Button
     private lateinit var tvAmount: TextView
 
-    // Current user ID (replace with actual authentication method)
-    private val currentUserId = "user123"
+    private var currentBalance: Double = 0.0
+    private var monthlyGoal: Double = 0.0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,172 +35,157 @@ class MainActivity : ComponentActivity() {
         db = FirebaseFirestore.getInstance()
 
         // Initialize UI components
-        initializeUIComponents()
+        initializeComponents()
 
-        // Set up button click listeners
-        setupButtonListeners()
+        // Setup transaction type spinner
+        setupTransactionTypeSpinner()
 
-        // Fetch initial user data
+        // Fetch user data from Firestore
         fetchUserData()
+
+        // Setup button click listeners
+        setupButtonListeners()
     }
 
-    private fun initializeUIComponents() {
-        try {
-            usernameText = findViewById(R.id.menuUsernameTxt)
-            balanceText = findViewById(R.id.balanceTxt)
-            progressBar = findViewById(R.id.progressBar)
-            progressCircle = findViewById(R.id.progressCircle)
-            tvAmount = findViewById(R.id.tvAmount)
-        } catch (e: Exception) {
-            showError("UI Initialization Error", e)
-        }
+    private fun initializeComponents() {
+        usernameTxt = findViewById(R.id.menuUsernameTxt)
+        balanceTxt = findViewById(R.id.balanceTxt)
+        progressBar = findViewById(R.id.progressBar)
+        progressCircle = findViewById(R.id.progressCircle)
+        etAmount = findViewById(R.id.etAmount)
+        spinnerTransactionType = findViewById(R.id.spinnerTransactionType)
+        btnConfirm = findViewById(R.id.btnConfirm)
+        btnDelete = findViewById(R.id.btnDelete)
+        viewTransactionBtn = findViewById(R.id.viewtransactionBtn)
+        goalEditText = findViewById(R.id.goalEditText)
+        btnAddGoal = findViewById(R.id.btnAddGoal)
+        tvAmount = findViewById(R.id.tvAmount)
     }
 
-    private fun setupButtonListeners() {
-        try {
-            findViewById<Button>(R.id.btnToday).setOnClickListener { updateData(1) }
-            findViewById<Button>(R.id.btn7Days).setOnClickListener { updateData(7) }
-            findViewById<Button>(R.id.btn30Days).setOnClickListener { updateData(30) }
-            findViewById<Button>(R.id.btnYear).setOnClickListener { updateData(365) }
-            findViewById<Button>(R.id.btnAddIncome).setOnClickListener { addIncome() }
-            findViewById<Button>(R.id.btnAddExpense).setOnClickListener { addExpense() }
-        } catch (e: Exception) {
-            showError("Button Setup Error", e)
-        }
+    private fun setupTransactionTypeSpinner() {
+        val transactionTypes = arrayOf("Income", "Expense")
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, transactionTypes)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerTransactionType.adapter = adapter
     }
 
     private fun fetchUserData() {
-        try {
-            db.collection("users").document(currentUserId)
-                .get()
-                .addOnSuccessListener { document ->
-                    if (document != null) {
-                        // Safely extract and display user data
-                        val username = document.getString("username") ?: "Unknown User"
-                        val balance = document.getDouble("balance") ?: 0.0
-                        val monthlyProgress = document.getLong("monthlyProgress")?.toInt() ?: 0
+        val userId = "currentUserID" // Replace with actual user authentication method
+        db.collection("users").document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null) {
+                    usernameTxt.text = document.getString("username") ?: "User"
+                    currentBalance = document.getDouble("balance") ?: 0.0
+                    monthlyGoal = document.getDouble("monthlyGoal") ?: 0.0
 
-                        // Format balance with currency
-                        val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.US)
-
-                        // Update UI
-                        usernameText.text = username
-                        balanceText.text = currencyFormatter.format(balance)
-                        tvAmount.text = currencyFormatter.format(balance)
-
-                        // Set progress for both progress bar and circle
-                        progressBar.progress = monthlyProgress
-                        progressCircle.progress = monthlyProgress
-                    } else {
-                        showError("User Data Error", "No user data found")
-                    }
+                    updateBalanceAndGoalUI()
                 }
-                .addOnFailureListener { e ->
-                    showError("Firestore Fetch Error", e)
-                }
-        } catch (e: Exception) {
-            showError("Data Fetch Error", e)
-        }
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Error fetching user data: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 
-    private fun updateData(days: Int) {
+    private fun setupButtonListeners() {
+        btnConfirm.setOnClickListener { addTransaction() }
+        btnDelete.setOnClickListener { clearTransaction() }
+        viewTransactionBtn.setOnClickListener {
+            val intent = Intent(this, transactionActivity::class.java)
+            startActivity(intent)
+        }
+        btnAddGoal.setOnClickListener { updateMonthlyGoal() }
+    }
+
+    private fun addTransaction() {
         try {
-            // Example implementation of data update based on time range
-            val updateData = hashMapOf(
-                "lastViewedRange" to days
+            val amount = etAmount.text.toString().toDoubleOrNull()
+            val transactionType = spinnerTransactionType.selectedItem.toString()
+
+            if (amount == null || amount <= 0) {
+                Toast.makeText(this, "Please enter a valid amount", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val userId = "currentUserID" // Replace with actual user authentication
+            val transaction = hashMapOf(
+                "amount" to amount,
+                "type" to transactionType,
+                "timestamp" to FieldValue.serverTimestamp()
             )
 
-            db.collection("users").document(currentUserId)
-                .set(updateData, SetOptions.merge())
+            // Add transaction to Firestore
+            db.collection("users").document(userId).collection("transactions")
+                .add(transaction)
                 .addOnSuccessListener {
-                    Toast.makeText(this, "Data updated for $days days", Toast.LENGTH_SHORT).show()
-                    // Optionally fetch updated data
-                    fetchUserData()
+                    updateBalance(amount, transactionType)
+                    etAmount.text.clear()
                 }
                 .addOnFailureListener { e ->
-                    showError("Update Data Error", e)
+                    Toast.makeText(this, "Error adding transaction: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
         } catch (e: Exception) {
-            showError("Data Update Error", e)
+            Toast.makeText(this, "Error processing transaction: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun addIncome() {
+    private fun updateBalance(amount: Double, transactionType: String) {
+        val userId = "currentUserID" // Replace with actual user authentication
+        val balanceUpdate = if (transactionType == "Income") amount else -amount
+
+        db.collection("users").document(userId)
+            .update("balance", FieldValue.increment(balanceUpdate))
+            .addOnSuccessListener {
+                currentBalance += balanceUpdate
+                updateBalanceAndGoalUI()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Error updating balance: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun updateBalanceAndGoalUI() {
+        balanceTxt.text = String.format("$%.2f", currentBalance)
+        tvAmount.text = String.format("$%.2f", currentBalance)
+
+        // Update progress bars
+        val progress = if (monthlyGoal > 0) {
+            ((currentBalance / monthlyGoal) * 100).toInt().coerceAtMost(100)
+        } else {
+            0
+        }
+        progressBar.progress = progress
+        progressCircle.progress = progress
+    }
+
+    private fun clearTransaction() {
+        etAmount.text.clear()
+        spinnerTransactionType.setSelection(0)
+    }
+
+    private fun updateMonthlyGoal() {
         try {
-            // Placeholder for income addition logic
-            val incomeAmount = 100.0 // This could come from a dialog or input
+            val goalAmount = goalEditText.text.toString().toDoubleOrNull()
 
-            db.collection("users").document(currentUserId)
-                .get()
-                .addOnSuccessListener { document ->
-                    val currentBalance = document.getDouble("balance") ?: 0.0
-                    val newBalance = currentBalance + incomeAmount
+            if (goalAmount == null || goalAmount <= 0) {
+                Toast.makeText(this, "Please enter a valid goal amount", Toast.LENGTH_SHORT).show()
+                return
+            }
 
-                    val updateData = hashMapOf(
-                        "balance" to newBalance,
-                        "totalIncome" to FieldValue.increment(incomeAmount)
-                    )
-
-                    db.collection("users").document(currentUserId)
-                        .update(updateData)
-                        .addOnSuccessListener {
-                            Toast.makeText(this, "Income added successfully", Toast.LENGTH_SHORT).show()
-                            fetchUserData()
-                        }
-                        .addOnFailureListener { e ->
-                            showError("Income Addition Error", e)
-                        }
+            val userId = "currentUserID" // Replace with actual user authentication
+            db.collection("users").document(userId)
+                .update("monthlyGoal", goalAmount)
+                .addOnSuccessListener {
+                    monthlyGoal = goalAmount
+                    updateBalanceAndGoalUI()
+                    goalEditText.text.clear()
+                    Toast.makeText(this, "Monthly goal updated successfully", Toast.LENGTH_SHORT).show()
                 }
                 .addOnFailureListener { e ->
-                    showError("Balance Fetch Error", e)
+                    Toast.makeText(this, "Error updating goal: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
         } catch (e: Exception) {
-            showError("Add Income Error", e)
+            Toast.makeText(this, "Error processing goal: ${e.message}", Toast.LENGTH_SHORT).show()
         }
-    }
-
-    private fun addExpense() {
-        try {
-            // Placeholder for expense addition logic
-            val expenseAmount = 50.0 // This could come from a dialog or input
-
-            db.collection("users").document(currentUserId)
-                .get()
-                .addOnSuccessListener { document ->
-                    val currentBalance = document.getDouble("balance") ?: 0.0
-                    val newBalance = currentBalance - expenseAmount
-
-                    val updateData = hashMapOf(
-                        "balance" to newBalance,
-                        "totalExpenses" to FieldValue.increment(expenseAmount)
-                    )
-
-                    db.collection("users").document(currentUserId)
-                        .update(updateData)
-                        .addOnSuccessListener {
-                            Toast.makeText(this, "Expense added successfully", Toast.LENGTH_SHORT).show()
-                            fetchUserData()
-                        }
-                        .addOnFailureListener { e ->
-                            showError("Expense Addition Error", e)
-                        }
-                }
-                .addOnFailureListener { e ->
-                    showError("Balance Fetch Error", e)
-                }
-        } catch (e: Exception) {
-            showError("Add Expense Error", e)
-        }
-    }
-
-    // Generic error handling method
-    private fun showError(context: String, e: Exception) {
-        Log.e("MainActivity", "$context: ${e.message}", e)
-        Toast.makeText(this, "Error in $context: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
-    }
-
-    private fun showError(context: String, message: String) {
-        Log.e("MainActivity", "$context: $message")
-        Toast.makeText(this, "Error in $context: $message", Toast.LENGTH_LONG).show()
     }
 }

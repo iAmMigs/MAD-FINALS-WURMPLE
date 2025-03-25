@@ -66,7 +66,9 @@ class signupActivity : AppCompatActivity() {
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
                             Toast.makeText(this, "Account created!", Toast.LENGTH_SHORT).show()
-                            // startActivity(Intent(this, menuActivity::class.java))
+                            val intent = Intent()
+                            intent.setClassName("com.example.mad_finals_wurmple", "com.example.mad_finals_wurmple.dashboard.dashboardActivity")
+                            startActivity(intent)
                             finish()  // Finish signup activity
                         } else {
                             Toast.makeText(this, "Signup failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
