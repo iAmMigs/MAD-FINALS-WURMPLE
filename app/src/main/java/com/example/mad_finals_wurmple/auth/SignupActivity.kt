@@ -1,12 +1,12 @@
-package com.example.mad_finals_wurmple
+package com.example.mad_finals_wurmple.auth
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.mad_finals_wurmple.R
 import com.google.firebase.auth.FirebaseAuth
 
 class signupActivity : AppCompatActivity() {
@@ -66,7 +66,7 @@ class signupActivity : AppCompatActivity() {
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
                             Toast.makeText(this, "Account created!", Toast.LENGTH_SHORT).show()
-                            startActivity(Intent(this, menuActivity::class.java))
+                            // startActivity(Intent(this, menuActivity::class.java))
                             finish()  // Finish signup activity
                         } else {
                             Toast.makeText(this, "Signup failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
