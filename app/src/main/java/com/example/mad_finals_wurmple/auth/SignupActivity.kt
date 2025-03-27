@@ -67,7 +67,7 @@ class signupActivity : AppCompatActivity() {
                         if (task.isSuccessful) {
                             Toast.makeText(this, "Account created!", Toast.LENGTH_SHORT).show()
                             val intent = Intent()
-                            intent.setClassName("com.example.mad_finals_wurmple", "com.example.mad_finals_wurmple.dashboard.dashboardActivity")
+                            intent.setClassName("com.example.mad_finals_wurmple", "com.example.mad_finals_wurmple.mainApp.dashboardActivity")
                             startActivity(intent)
                             finish()  // Finish signup activity
                         } else {

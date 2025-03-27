@@ -1,0 +1,38 @@
+[33m32238d2[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/tracker[m[33m, [m[1;31morigin/feature/tracker[m[33m)[m HEAD@{0}: checkout: moving from feature/tracker-xml to feature/tracker
+[33m00d78db[m[33m ([m[1;31morigin/feature/tracker-xml[m[33m, [m[1;32mfeature/tracker-xml[m[33m)[m HEAD@{1}: checkout: moving from feature/tracker to feature/tracker-xml
+[33m32238d2[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/tracker[m[33m, [m[1;31morigin/feature/tracker[m[33m)[m HEAD@{2}: reset: moving to HEAD
+[33m32238d2[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/tracker[m[33m, [m[1;31morigin/feature/tracker[m[33m)[m HEAD@{3}: rebase (abort): returning to refs/heads/feature/tracker
+[33m00d78db[m[33m ([m[1;31morigin/feature/tracker-xml[m[33m, [m[1;32mfeature/tracker-xml[m[33m)[m HEAD@{4}: rebase (start): checkout refs/heads/feature/tracker-xml
+[33m32238d2[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/tracker[m[33m, [m[1;31morigin/feature/tracker[m[33m)[m HEAD@{5}: rebase (abort): returning to refs/heads/feature/tracker
+[33m00d78db[m[33m ([m[1;31morigin/feature/tracker-xml[m[33m, [m[1;32mfeature/tracker-xml[m[33m)[m HEAD@{6}: rebase (start): checkout refs/heads/feature/tracker-xml
+[33m32238d2[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/tracker[m[33m, [m[1;31morigin/feature/tracker[m[33m)[m HEAD@{7}: commit: fix: made changes on the dashboard bug
+[33mbf67e83[m HEAD@{8}: merge origin/feature/tracker: Fast-forward
+[33mddb0730[m HEAD@{9}: merge origin/feature/tracker: Fast-forward
+[33mf439167[m HEAD@{10}: checkout: moving from feature/tracker-xml to feature/tracker
+[33m00d78db[m[33m ([m[1;31morigin/feature/tracker-xml[m[33m, [m[1;32mfeature/tracker-xml[m[33m)[m HEAD@{11}: commit (amend): feat: added dashboard xml design
+[33m3628d28[m HEAD@{12}: commit (amend): feat: added dashboard
+[33m62405ae[m HEAD@{13}: commit: feat: added dashboard
+[33m7cd97aa[m HEAD@{14}: checkout: moving from feature/auth to feature/tracker-xml
+[33m4d9934e[m[33m ([m[1;32mfeature/auth[m[33m)[m HEAD@{15}: commit: fix: added firestore functionality
+[33m28aae3a[m[33m ([m[1;31morigin/feature/auth[m[33m)[m HEAD@{16}: checkout: moving from main to feature/auth
+[33m1c4fdd7[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{17}: checkout: moving from feature/tracker-xml to main
+[33m7cd97aa[m HEAD@{18}: commit: refactored: deleted unused files
+[33m8de73ff[m HEAD@{19}: reset: moving to 8de73ffef5e785a401e59772f9bddf16d0d0a835
+[33m8de73ff[m HEAD@{20}: reset: moving to 8de73ffef5e785a401e59772f9bddf16d0d0a835
+[33m8de73ff[m HEAD@{21}: reset: moving to 8de73ffef5e785a401e59772f9bddf16d0d0a835
+[33m4e88d3d[m HEAD@{22}: revert: Revert "refactored: deleted unused files"
+[33m1fe2b59[m HEAD@{23}: Branch: renamed refs/heads/feature/tracker/xml to refs/heads/feature/tracker-xml
+[33m1fe2b59[m HEAD@{25}: commit: refactored: deleted unused files
+[33m8de73ff[m HEAD@{26}: reset: moving to 8de73ffef5e785a401e59772f9bddf16d0d0a835
+[33m1794992[m HEAD@{27}: revert: Reapply "refactored: deleted unused files"
+[33meb138b3[m HEAD@{28}: revert: Revert "refactored: deleted unused files"
+[33m1de7972[m HEAD@{29}: commit: refactored: deleted unused files
+[33mad31701[m HEAD@{30}: commit: refactored: deleted unused files
+[33m8de73ff[m HEAD@{31}: checkout: moving from main to feature/tracker/xml
+[33m1c4fdd7[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{32}: checkout: moving from feature/tracker/xml to main
+[33m8de73ff[m HEAD@{33}: checkout: moving from feature/auth to feature/tracker/xml
+[33m398b868[m HEAD@{34}: commit: fix: fixed account creation
+[33mf0fac17[m HEAD@{35}: checkout: moving from main to feature/auth
+[33mf0fac17[m HEAD@{36}: rebase (finish): returning to refs/heads/main
+[33mf0fac17[m HEAD@{37}: rebase (start): checkout refs/remotes/origin/feature/auth
+[33m1269ad6[m HEAD@{38}: clone: from https://github.com/FEU-Tech-Mobile-Application-Dev-Ramirez/MAD-FINALS-WURMPLE.git

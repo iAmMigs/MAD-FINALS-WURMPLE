@@ -11,7 +11,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 
-
 class loginActivity : AppCompatActivity() {
 
     private lateinit var loginEmail: EditText
@@ -54,7 +53,7 @@ class loginActivity : AppCompatActivity() {
                     if (task.isSuccessful) {
                         Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show()
                         val intent = Intent()
-                        intent.setClassName("com.example.mad_finals_wurmple", "com.example.mad_finals_wurmple.dashboard.dashboardActivity")
+                        intent.setClassName("com.example.mad_finals_wurmple", "com.example.mad_finals_wurmple.mainApp.dashboardActivity")
                         startActivity(intent)
                         finish()
                     } else {
