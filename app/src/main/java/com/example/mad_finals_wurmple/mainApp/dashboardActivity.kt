@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.mad_finals_wurmple.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import androidx.fragment.app.DialogFragment
 
 class dashboardActivity : AppCompatActivity() {
 
@@ -18,6 +19,7 @@ class dashboardActivity : AppCompatActivity() {
     private lateinit var profileBtn: ImageButton
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
+    private lateinit var fab: ImageButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +33,7 @@ class dashboardActivity : AppCompatActivity() {
         // Initialize UI elements
         menuUserName = findViewById(R.id.usernameText)
         profileBtn = findViewById(R.id.profileButton)
+        fab = findViewById(R.id.fab)
 
         // Fetch username from Firestore
         fetchUsername()
@@ -41,6 +44,12 @@ class dashboardActivity : AppCompatActivity() {
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
             startActivity(intent)
             finish()
+        }
+
+        // Show popup on FAB click
+        fab.setOnClickListener {
+            val transactionDialog = TransactionDialogFragment()
+            transactionDialog.show(supportFragmentManager, "TransactionDialog")
         }
     }
 

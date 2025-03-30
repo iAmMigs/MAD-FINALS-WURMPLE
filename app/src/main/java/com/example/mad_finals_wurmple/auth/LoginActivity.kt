@@ -11,7 +11,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 
-class loginActivity : AppCompatActivity() {
+class LoginActivity : AppCompatActivity() {
 
     private lateinit var loginEmail: EditText
     private lateinit var loginPassword: EditText
@@ -69,11 +69,11 @@ class loginActivity : AppCompatActivity() {
         }
 
         forgotPass.setOnClickListener {
-            startActivity(Intent(this, forgotPassActivity::class.java))
+            startActivity(Intent(this, ForgotPassActivity::class.java))
         }
 
         redirectSignupBtn.setOnClickListener {
-            startActivity(Intent(this, signupActivity::class.java))
+            startActivity(Intent(this, SignupActivity::class.java))
         }
     }
 }
