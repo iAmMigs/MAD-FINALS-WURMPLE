@@ -21,17 +21,14 @@
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".dashboard.dashboardActivity"
+            android:name=".mainApp.accountSettingsActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
-<<<<<<< Updated upstream
-=======
             android:name=".mainApp.dashboardActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
->>>>>>> Stashed changes
             android:name=".auth.loginActivity"
             android:exported="true"
             android:screenOrientation="portrait">

@@ -40,7 +40,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="15dp"
                     android:layout_marginTop="15dp"
-                    android:text="Good Morning,"
+                    android:text="Good Day,"
                     android:textColor="@color/white"
                     android:textSize="16sp"
                     android:textStyle="bold"/>
@@ -104,8 +104,9 @@
                     android:textSize="16sp"
                     android:text="TYPES OF TRANSACTION"
                     android:padding="10dp"
-                    android:textAlignment="center"
-                    android:textColor="@color/black"/>
+                    android:gravity="center_horizontal"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"/>
                 <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -178,7 +179,8 @@
         android:src="@drawable/circle_with_plus"
         app:maxImageSize="80dp"
         android:scaleType="centerInside"
-        app:backgroundTint="#FFFFFF" />
+        app:backgroundTint="#FFFFFF"
+        android:contentDescription="add transaction"/>
 
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottomAppBar"
@@ -199,8 +201,8 @@
                 android:layout_weight="0.15"/>
             <ImageButton
                 android:id="@+id/homeButton"
-                android:layout_width="45dp"
-                android:layout_height="45dp"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:background="@drawable/house_icon_selected"
                 android:contentDescription="Home" />
 
@@ -211,8 +213,8 @@
 
             <ImageButton
                 android:id="@+id/profileButton"
-                android:layout_width="45dp"
-                android:layout_height="45dp"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:background="@drawable/account_icon"
                 android:contentDescription="Profile"/>
 

@@ -16,7 +16,7 @@
         android:text="Welcome Back!"
         android:textColor="@color/black"
         android:textSize="40sp"
-        android:textAlignment="center"
+        android:gravity="center_horizontal"
         android:textStyle="bold"
         />
     <!-- login -->
@@ -94,7 +94,7 @@
             android:text="Don't have an account?"
             android:textColor="@color/black"
             android:textSize="16sp"
-            android:textAlignment="center"
+            android:gravity="center_horizontal"
             android:textStyle="bold"
             />
 
