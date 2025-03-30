@@ -91,35 +91,37 @@ class SignupActivity : AppCompatActivity() {
                                     val userId = auth.currentUser?.uid
 
                                     if (userId != null) {
-                                        // Create user data with additional fields
+                                        // Create user data
                                         val user = hashMapOf(
                                             "username" to username,
-                                            "email" to email,
-                                            "income" to 0.0,              // Default income
-                                            "expense" to 0.0,             // Default expense
-                                            "goal_setting" to 0.0,        // Default goal setting
-                                            "transaction_time" to System.currentTimeMillis() // Current timestamp
+                                            "email" to email
                                         )
 
                                         // Save user data to Firestore
                                         db.collection("users").document(userId)
                                             .set(user)
                                             .addOnSuccessListener {
-                                                // Verify Firestore data before proceeding
-                                                db.collection("users").document(userId).get()
-                                                    .addOnSuccessListener { document ->
-                                                        if (document.exists()) {
-                                                            Toast.makeText(this, "Account created successfully!", Toast.LENGTH_SHORT).show()
-                                                            val intent = Intent(this, dashboardActivity::class.java)
-                                                            startActivity(intent)
-                                                            finish()
-                                                        } else {
-                                                            Toast.makeText(this, "Error verifying account. Please try again.", Toast.LENGTH_SHORT).show()
+                                                // Create empty subcollections by writing and immediately deleting a placeholder document
+                                                val emptyData = hashMapOf("placeholder" to true)
+
+                                                listOf("income", "expenses", "goal").forEach { collection ->
+                                                    db.collection("users").document(userId)
+                                                        .collection(collection).document("temp")
+                                                        .set(emptyData)
+                                                        .addOnSuccessListener {
+                                                            db.collection("users").document(userId)
+                                                                .collection(collection).document("temp")
+                                                                .delete()
                                                         }
-                                                    }
-                                                    .addOnFailureListener {
-                                                        Toast.makeText(this, "Error verifying account: ${it.message}", Toast.LENGTH_SHORT).show()
-                                                    }
+                                                        .addOnFailureListener { e ->
+                                                            Toast.makeText(this, "Failed to initialize $collection collection: ${e.message}", Toast.LENGTH_SHORT).show()
+                                                        }
+                                                }
+
+                                                Toast.makeText(this, "Account created successfully!", Toast.LENGTH_SHORT).show()
+                                                val intent = Intent(this, dashboardActivity::class.java)
+                                                startActivity(intent)
+                                                finish()
                                             }
                                             .addOnFailureListener { e ->
                                                 Toast.makeText(this, "Failed to save user info: ${e.message}", Toast.LENGTH_SHORT).show()
