@@ -12,7 +12,7 @@ import com.example.mad_finals_wurmple.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 
-class forgotPassActivity : AppCompatActivity() {
+class ForgotPassActivity : AppCompatActivity() {
 
     private lateinit var resetButton: Button
     private lateinit var emailEditText: EditText
@@ -36,7 +36,7 @@ class forgotPassActivity : AppCompatActivity() {
 
         redirectBackBtn.setOnClickListener {
             Log.d("RedirectLogin", "Button clicked")
-            startActivity(Intent(this, loginActivity::class.java))
+            startActivity(Intent(this, LoginActivity::class.java))
         }
 
         // Set onClickListener for RESET button

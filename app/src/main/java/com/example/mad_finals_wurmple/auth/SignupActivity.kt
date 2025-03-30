@@ -2,17 +2,16 @@ package com.example.mad_finals_wurmple.auth
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.mad_finals_wurmple.R
+import com.example.mad_finals_wurmple.mainApp.dashboardActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
-class signupActivity : AppCompatActivity() {
+class SignupActivity : AppCompatActivity() {
 
     private lateinit var signupUsername: EditText
     private lateinit var signupEmail: EditText
@@ -63,7 +62,7 @@ class signupActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Validate username (only letters, numbers, and underscores, no spaces)
+            // Validate username format (only letters, numbers, and underscores, no spaces)
             val usernamePattern = Regex("^[a-zA-Z0-9_]+$")
             if (!usernamePattern.matches(username)) {
                 Toast.makeText(this, "Username must be one word with only letters, numbers, or underscores", Toast.LENGTH_SHORT).show()
@@ -76,43 +75,71 @@ class signupActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Create user in Firebase Auth
-            auth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        val userId = auth.currentUser?.uid
-
-                        if (userId != null) {
-                            // Save user details in Firestore
-                            val user = hashMapOf(
-                                "username" to username,
-                                "email" to email
-                            )
-
-                            db.collection("users").document(userId)
-                                .set(user)
-                                .addOnSuccessListener {
-                                    Toast.makeText(this, "Successfully created account!", Toast.LENGTH_SHORT).show()
-
-                                    // Delay before going back to login screen
-                                    Handler(Looper.getMainLooper()).postDelayed({
-                                        val intent = Intent(this, loginActivity::class.java)
-                                        startActivity(intent)
-                                        finish() // Close signup activity
-                                    }, 2000) // 2-second delay
-                                }
-                                .addOnFailureListener { e ->
-                                    Toast.makeText(this, "Failed to save user info: ${e.message}", Toast.LENGTH_SHORT).show()
-                                }
+            try {
+                // Check if username already exists in Firestore
+                db.collection("users").whereEqualTo("username", username).get()
+                    .addOnSuccessListener { documents ->
+                        if (!documents.isEmpty) {
+                            Toast.makeText(this, "Username is already taken", Toast.LENGTH_SHORT).show()
+                            return@addOnSuccessListener
                         }
-                    } else {
-                        Toast.makeText(this, "Signup failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+
+                        // If username is unique, proceed with Firebase Authentication
+                        auth.createUserWithEmailAndPassword(email, password)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    val userId = auth.currentUser?.uid
+
+                                    if (userId != null) {
+                                        // Create user data with additional fields
+                                        val user = hashMapOf(
+                                            "username" to username,
+                                            "email" to email,
+                                            "income" to 0.0,              // Default income
+                                            "expense" to 0.0,             // Default expense
+                                            "goal_setting" to 0.0,        // Default goal setting
+                                            "transaction_time" to System.currentTimeMillis() // Current timestamp
+                                        )
+
+                                        // Save user data to Firestore
+                                        db.collection("users").document(userId)
+                                            .set(user)
+                                            .addOnSuccessListener {
+                                                // Verify Firestore data before proceeding
+                                                db.collection("users").document(userId).get()
+                                                    .addOnSuccessListener { document ->
+                                                        if (document.exists()) {
+                                                            Toast.makeText(this, "Account created successfully!", Toast.LENGTH_SHORT).show()
+                                                            val intent = Intent(this, dashboardActivity::class.java)
+                                                            startActivity(intent)
+                                                            finish()
+                                                        } else {
+                                                            Toast.makeText(this, "Error verifying account. Please try again.", Toast.LENGTH_SHORT).show()
+                                                        }
+                                                    }
+                                                    .addOnFailureListener {
+                                                        Toast.makeText(this, "Error verifying account: ${it.message}", Toast.LENGTH_SHORT).show()
+                                                    }
+                                            }
+                                            .addOnFailureListener { e ->
+                                                Toast.makeText(this, "Failed to save user info: ${e.message}", Toast.LENGTH_SHORT).show()
+                                            }
+                                    }
+                                } else {
+                                    Toast.makeText(this, "Signup failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                                }
+                            }
                     }
-                }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(this, "Error checking username: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+            } catch (e: Exception) {
+                Toast.makeText(this, "An error occurred: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
 
         redirectLoginBtn.setOnClickListener {
-            startActivity(Intent(this, loginActivity::class.java))
+            startActivity(Intent(this, LoginActivity::class.java))
         }
     }
 }

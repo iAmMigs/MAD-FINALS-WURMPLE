@@ -13,7 +13,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import com.example.mad_finals_wurmple.R
-import com.example.mad_finals_wurmple.auth.loginActivity
+import com.example.mad_finals_wurmple.auth.LoginActivity
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -114,7 +114,7 @@ class accountSettingsActivity : AppCompatActivity() {
                             // Log out user and redirect to login screen after 2 seconds
                             auth.signOut()
                             android.os.Handler(Looper.getMainLooper()).postDelayed({
-                                val intent = Intent(this, loginActivity::class.java)
+                                val intent = Intent(this, LoginActivity::class.java)
                                 intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                                 startActivity(intent)
                                 finish() // Close account settings activity
