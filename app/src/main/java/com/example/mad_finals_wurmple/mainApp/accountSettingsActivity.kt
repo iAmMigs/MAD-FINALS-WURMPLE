@@ -1,17 +1,19 @@
 package com.example.mad_finals_wurmple.mainApp
+
 import android.content.Intent
 import android.os.Bundle
+import android.os.Looper
 import android.view.View
 import android.view.animation.AlphaAnimation
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import com.example.mad_finals_wurmple.R
+import com.example.mad_finals_wurmple.auth.loginActivity
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -67,17 +69,13 @@ class accountSettingsActivity : AppCompatActivity() {
         // Handle home button click to navigate to dashboard
         homeBtn.setOnClickListener {
             val intent = Intent(this, dashboardActivity::class.java)
-            // Clear back stack so user can't go back to account settings with back button
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
             startActivity(intent)
             finish() // Optional: close this activity
         }
-
-        // Add other bottom navigation buttons here as needed
     }
 
     private fun setupPasswordUpdate() {
-        // Update password logic
         updatePasswordButton.setOnClickListener {
             val currentPassword = currentPasswordInput.text.toString().trim()
             val newPassword = newPasswordInput.text.toString().trim()
@@ -88,28 +86,17 @@ class accountSettingsActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            if (newPassword.isEmpty()) {
-                Toast.makeText(this, "Please enter a new password", Toast.LENGTH_SHORT).show()
+            if (newPassword.isEmpty() || currentPassword.isEmpty()) {
+                Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            if (currentPassword.isEmpty()) {
-                Toast.makeText(this, "Please enter your current password", Toast.LENGTH_SHORT).show()
+            if (newPassword.length < 6) {
+                Toast.makeText(this, "Password must be at least 6 characters long", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            try {
-                if (newPassword.length < 6) {
-                    throw IllegalArgumentException("Password must be at least 6 characters long")
-                }
-
-                updatePassword(currentPassword, newPassword)
-
-            } catch (e: IllegalArgumentException) {
-                Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) {
-                Toast.makeText(this, "An error occurred: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
+            updatePassword(currentPassword, newPassword)
         }
     }
 
@@ -123,6 +110,15 @@ class accountSettingsActivity : AppCompatActivity() {
                     user.updatePassword(newPassword).addOnCompleteListener { updateTask ->
                         if (updateTask.isSuccessful) {
                             Toast.makeText(this, "Password updated successfully", Toast.LENGTH_SHORT).show()
+
+                            // Log out user and redirect to login screen after 2 seconds
+                            auth.signOut()
+                            android.os.Handler(Looper.getMainLooper()).postDelayed({
+                                val intent = Intent(this, loginActivity::class.java)
+                                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                                startActivity(intent)
+                                finish() // Close account settings activity
+                            }, 2000) // 2-second delay
                         } else {
                             Toast.makeText(this, "Failed to update password. Try again.", Toast.LENGTH_SHORT).show()
                         }
@@ -141,18 +137,18 @@ class accountSettingsActivity : AppCompatActivity() {
         changePassCard.visibility = View.VISIBLE
         deleteAccCard.visibility = View.GONE
 
-        // Make change password button appear active
-        changePassBtn.elevation = 10f
-        deleteAccBtn.elevation = 0f
+        // Set initial button styles
+        setButtonActive(changePassBtn)
+        setButtonInactive(deleteAccBtn)
 
         changePassBtn.setOnClickListener {
             // Show change password card
             changePassCard.visibility = View.VISIBLE
             deleteAccCard.visibility = View.GONE
 
-            // Update button elevations
-            changePassBtn.elevation = 10f
-            deleteAccBtn.elevation = 0f
+            // Apply styles
+            setButtonActive(changePassBtn)
+            setButtonInactive(deleteAccBtn)
 
             // Optional: Add animation
             val fadeIn = AlphaAnimation(0f, 1f)
@@ -165,14 +161,30 @@ class accountSettingsActivity : AppCompatActivity() {
             changePassCard.visibility = View.GONE
             deleteAccCard.visibility = View.VISIBLE
 
-            // Update button elevations
-            changePassBtn.elevation = 0f
-            deleteAccBtn.elevation = 10f
+            // Apply styles
+            setButtonActive(deleteAccBtn)
+            setButtonInactive(changePassBtn)
 
             // Optional: Add animation
             val fadeIn = AlphaAnimation(0f, 1f)
             fadeIn.duration = 300
             deleteAccCard.startAnimation(fadeIn)
         }
+    }
+
+    // Function to make the selected button prominent
+    private fun setButtonActive(button: Button) {
+        button.alpha = 1f // Full opacity
+        button.scaleX = 1.0f
+        button.scaleY = 1.0f
+        button.elevation = 10f
+    }
+
+    // Function to make the inactive button slightly faded and smaller
+    private fun setButtonInactive(button: Button) {
+        button.alpha = 0.6f // Lower opacity
+        button.scaleX = 0.9f // Slightly smaller
+        button.scaleY = 0.9f // Slightly smaller
+        button.elevation = 0f
     }
 }
