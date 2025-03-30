@@ -185,6 +185,9 @@
 
                 <!-- Default View (Goal) -->
                 <include layout="@layout/goal_view"/>
+
+                    <!-- Hidden Views -->
+                <include layout="@layout/goal_view"/>
             </FrameLayout>
             </androidx.cardview.widget.CardView>
         </LinearLayout>
