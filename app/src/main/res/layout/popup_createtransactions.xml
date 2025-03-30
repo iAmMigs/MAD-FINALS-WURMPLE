@@ -130,6 +130,7 @@
                             android:textSize="16sp"/>
 
                         <EditText
+                            android:textColorHint="@color/black"
                             android:id="@+id/AddAmountInput"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -151,6 +152,7 @@
                             android:textSize="16sp"/>
 
                         <EditText
+                            android:textColorHint="@color/black"
                             android:id="@+id/transNameInput"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -163,6 +165,8 @@
                             android:textSize="16sp"/>
 
                         <Button
+                            android:paddingLeft="25dp"
+                            android:paddingRight="25dp"
                             android:id="@+id/addButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -213,6 +217,7 @@
                             android:textSize="16sp"/>
 
                         <EditText
+                            android:textColorHint="@color/black"
                             android:id="@+id/DecreaseAmountInput"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -234,6 +239,7 @@
                             android:textSize="16sp"/>
 
                         <EditText
+                            android:textColorHint="@color/black"
                             android:id="@+id/transactionNameDecrease"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -246,6 +252,8 @@
                             android:textSize="16sp"/>
 
                         <Button
+                            android:paddingLeft="25dp"
+                            android:paddingRight="25dp"
                             android:id="@+id/decreaseButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
