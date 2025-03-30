@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFFFFF"
+        android:orientation="vertical">
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            app:cardBackgroundColor="#034335"
+            app:cardElevation="1dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="ACCOUNT SETTINGS"
+                android:textColor="#FFFFFF"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+        </androidx.cardview.widget.CardView>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp">
+            <Button
+                android:id="@+id/changePassBtn"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="50dp"
+                android:textSize="18sp"
+                android:layout_weight="0.4"
+                android:text="Change Password"
+                android:paddingBottom="5dp"
+                android:textColor="@color/white"
+                android:background="@drawable/rounded_top_right_corner_text_bg"
+                android:backgroundTint="#000000"/>
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.15"/>
+            <Button
+                android:id="@+id/deleteAccBtn"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="50dp"
+                android:textSize="18sp"
+                android:layout_weight="0.4"
+                android:text="Delete Account"
+                android:background="@drawable/rounded_top_left_corner_text_bg"
+                android:backgroundTint="#000000"
+                android:paddingBottom="5dp"
+                android:textColor="@color/white"/>
+        </LinearLayout>
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp">
+
+            <!-- Change Password Card -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/changePassCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-20dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardElevation="0dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:layout_gravity="center"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:layout_marginLeft="10dp"
+                        android:text="Current Password:"
+                        android:textColor="@color/black"
+                        android:textSize="16sp" />
+
+                    <EditText
+                        android:id="@+id/CurrentPassInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/rounded_corner_text_bg"
+                        android:hint="Enter your password"
+                        android:inputType="textPassword"
+                        android:padding="15dp"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/black"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="15dp"
+                        android:layout_marginLeft="10dp"
+                        android:text="New Password:"
+                        android:textColor="@color/black"
+                        android:textSize="16sp" />
+
+                    <EditText
+                        android:id="@+id/NewPassInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/rounded_corner_text_bg"
+                        android:hint="Enter your password"
+                        android:inputType="textPassword"
+                        android:padding="15dp"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/black"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="15dp"
+                        android:layout_marginLeft="10dp"
+                        android:text="Confirm Password:"
+                        android:textColor="@color/black"
+                        android:textSize="16sp" />
+
+                    <EditText
+                        android:id="@+id/ConfirmPassInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/rounded_corner_text_bg"
+                        android:hint="Confirm password"
+                        android:inputType="textPassword"
+                        android:padding="15dp"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/black"
+                        android:textSize="16sp" />
+
+                    <Button
+                        android:id="@+id/UpdatePassButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="35dp"
+                        android:background="@drawable/rounded_corner_text_bg"
+                        android:backgroundTint="#000000"
+                        android:paddingLeft="25dp"
+                        android:paddingRight="25dp"
+                        android:text="UPDATE"
+                        android:textColor="@color/white"
+                        android:textSize="20sp"
+                        android:layout_gravity="center"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Delete Account Card -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/deleteAccCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-20dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardElevation="1dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:layout_gravity="center"
+                    android:padding="16dp">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:layout_marginLeft="10dp"
+                        android:text="Delete Account"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="15dp"
+                        android:layout_marginLeft="10dp"
+                        android:text="Warning: This action cannot be undone. All your data will be permanently deleted."
+                        android:textColor="#FF0000"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="30dp"
+                        android:layout_marginLeft="10dp"
+                        android:text="Please enter your password to confirm:"
+                        android:textColor="@color/black"
+                        android:textSize="16sp" />
+
+                    <EditText
+                        android:id="@+id/deleteAccountPasswordInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/rounded_corner_text_bg"
+                        android:hint="Enter your password"
+                        android:inputType="textPassword"
+                        android:padding="15dp"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/black"
+                        android:textSize="16sp" />
+
+                    <Button
+                        android:id="@+id/confirmDeleteButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="35dp"
+                        android:background="@drawable/rounded_corner_text_bg"
+                        android:backgroundTint="#FF0000"
+                        android:paddingLeft="25dp"
+                        android:paddingRight="25dp"
+                        android:text="DELETE ACCOUNT"
+                        android:textColor="@color/white"
+                        android:textSize="20sp"
+                        android:layout_gravity="center"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+        </FrameLayout>
+
+    </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center"
+        android:layout_marginBottom="35dp"
+        android:src="@drawable/circle_with_plus"
+        app:maxImageSize="80dp"
+        android:scaleType="centerInside"
+        app:backgroundTint="#FFFFFF"
+        android:contentDescription="add transaction"/>
+
+    <com.google.android.material.bottomappbar.BottomAppBar
+        android:id="@+id/bottomAppBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:padding="6dp"
+        app:fabCradleRoundedCornerRadius="12dp"
+        fabCradleVerticalOffset="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.15"/>
+            <ImageButton
+                android:id="@+id/homeButton"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@drawable/house_icon"
+                android:contentDescription="Home" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.7"/>
+
+            <ImageButton
+                android:id="@+id/profileButton"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@drawable/account_icon_selected"
+                android:contentDescription="Profile"/>
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.2"/>
+        </LinearLayout>
+    </com.google.android.material.bottomappbar.BottomAppBar>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -7,7 +7,6 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.mad_finals_wurmple.R
-import com.example.mad_finals_wurmple.menuActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
@@ -53,7 +52,9 @@ class loginActivity : AppCompatActivity() {
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this, menuActivity::class.java))
+                        val intent = Intent()
+                        intent.setClassName("com.example.mad_finals_wurmple", "com.example.mad_finals_wurmple.mainApp.dashboardActivity")
+                        startActivity(intent)
                         finish()
                     } else {
                         val errorMessage = when (task.exception) {
