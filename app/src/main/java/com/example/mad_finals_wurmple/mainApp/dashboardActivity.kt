@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.example.mad_finals_wurmple.R
+import com.example.mad_finals_wurmple.mainApp.transactionClasses.IncomeHistoryManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.fragment.app.DialogFragment
@@ -35,6 +36,9 @@ class dashboardActivity : AppCompatActivity() {
 
     // Content frame to swap views
     private lateinit var contentFrame: FrameLayout
+
+    // Income Manager reference
+    private var incomeHistoryManager: IncomeHistoryManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -156,8 +160,13 @@ class dashboardActivity : AppCompatActivity() {
     }
 
     private fun initializeIncomeView() {
-        // Initialize income specific elements
-        // Example: Setup spinner, load income data to table, etc.
+        // Get the income view that was just added to the contentFrame
+        val incomeView = contentFrame.getChildAt(0)
+
+        // Initialize the IncomeHistoryManager with the view
+        incomeHistoryManager = IncomeHistoryManager(this, incomeView)
+
+        // The IncomeHistoryManager will handle setting up the spinner and populating the table
     }
 
     private fun initializeExpenseView() {
@@ -213,6 +222,4 @@ class dashboardActivity : AppCompatActivity() {
                 menuUserName.text = "Guest"
             }
     }
-
-
 }
