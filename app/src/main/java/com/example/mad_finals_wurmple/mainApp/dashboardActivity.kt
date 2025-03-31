@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -14,10 +13,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.example.mad_finals_wurmple.R
 import com.example.mad_finals_wurmple.mainApp.transactionClasses.IncomeHistoryManager
+import com.example.mad_finals_wurmple.mainApp.transactionClasses.ExpenseHistoryManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import androidx.fragment.app.DialogFragment
-
 
 class dashboardActivity : AppCompatActivity() {
 
@@ -26,6 +24,7 @@ class dashboardActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
     private lateinit var fab: ImageButton
+    private lateinit var balanceTextView: TextView
 
     // Transaction type buttons
     private lateinit var incomeBtn: Button
@@ -37,8 +36,9 @@ class dashboardActivity : AppCompatActivity() {
     // Content frame to swap views
     private lateinit var contentFrame: FrameLayout
 
-    // Income Manager reference
+    // Managers for transactions
     private var incomeHistoryManager: IncomeHistoryManager? = null
+    private var expenseHistoryManager: ExpenseHistoryManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +53,7 @@ class dashboardActivity : AppCompatActivity() {
         menuUserName = findViewById(R.id.usernameText)
         profileBtn = findViewById(R.id.profileButton)
         fab = findViewById(R.id.fab)
+        balanceTextView = findViewById(R.id.balanceText)
 
         // Initialize transaction buttons
         incomeBtn = findViewById(R.id.incomeBtn)
@@ -64,8 +65,9 @@ class dashboardActivity : AppCompatActivity() {
         // Initialize content frame
         contentFrame = findViewById(R.id.contentFrame)
 
-        // Fetch username from Firestore
+        // Fetch username and balance from Firestore
         fetchUsername()
+        listenForBalanceUpdates()
 
         // Handle profile button click
         profileBtn.setOnClickListener {
@@ -88,31 +90,26 @@ class dashboardActivity : AppCompatActivity() {
     }
 
     private fun setupTransactionButtons() {
-        // Income button
         incomeBtn.setOnClickListener {
             loadViewIntoContentFrame(R.layout.income_view)
             updateButtonStyles(incomeBtn)
         }
 
-        // Expenses button
         expensesBtn.setOnClickListener {
             loadViewIntoContentFrame(R.layout.expense_view)
             updateButtonStyles(expensesBtn)
         }
 
-        // Goal button (default)
         goalBtn.setOnClickListener {
             loadViewIntoContentFrame(R.layout.goal_view)
             updateButtonStyles(goalBtn)
         }
 
-        // Overdues button
         overduesBtn.setOnClickListener {
             loadViewIntoContentFrame(R.layout.overdue_view)
             updateButtonStyles(overduesBtn)
         }
 
-        // Penalties button
         penaltiesBtn.setOnClickListener {
             loadViewIntoContentFrame(R.layout.penalty_view)
             updateButtonStyles(penaltiesBtn)
@@ -120,74 +117,53 @@ class dashboardActivity : AppCompatActivity() {
     }
 
     private fun loadViewIntoContentFrame(layoutResId: Int) {
-        // Clear existing views
         contentFrame.removeAllViews()
 
-        // Inflate the new layout
         val inflater = LayoutInflater.from(this)
         val view = inflater.inflate(layoutResId, contentFrame, false)
-
-        // Add the inflated layout to the frame
         contentFrame.addView(view)
 
-        // Initialize the specific layout if needed
         when (layoutResId) {
             R.layout.goal_view -> initializeGoalView()
             R.layout.income_view -> initializeIncomeView()
-            R.layout.expense_view -> initializeExpenseView()
+            R.layout.expense_view -> initializeExpenseView(view) // Pass the view for initialization
             R.layout.overdue_view -> initializeOverdueView()
             R.layout.penalty_view -> initializePenaltyView()
         }
     }
 
-    // This method highlights the selected button and resets others
     private fun updateButtonStyles(selectedButton: Button) {
-        // Reset all buttons to default style
         incomeBtn.setBackgroundResource(R.drawable.button_default)
         expensesBtn.setBackgroundResource(R.drawable.button_default)
         goalBtn.setBackgroundResource(R.drawable.button_default)
         overduesBtn.setBackgroundResource(R.drawable.button_default)
         penaltiesBtn.setBackgroundResource(R.drawable.button_default)
 
-        // Set selected button style
         selectedButton.setBackgroundResource(R.drawable.button_selected)
     }
 
-    // Initialize views for each transaction type
     private fun initializeGoalView() {
-        // Initialize goal specific elements
-        // Example: Setup progress view, set current goal amounts, etc.
+        // Setup goal-specific elements
     }
 
     private fun initializeIncomeView() {
-        // Get the income view that was just added to the contentFrame
         val incomeView = contentFrame.getChildAt(0)
-
-        // Initialize the IncomeHistoryManager with the view
         incomeHistoryManager = IncomeHistoryManager(this, incomeView)
-
-        // The IncomeHistoryManager will handle setting up the spinner and populating the table
     }
 
-    private fun initializeExpenseView() {
-        // Initialize expense specific elements
-        // Example: Setup spinner, load expense data to table, etc.
+    private fun initializeExpenseView(view: android.view.View) {
+        expenseHistoryManager = ExpenseHistoryManager(this, view)
     }
 
     private fun initializeOverdueView() {
-        // Initialize overdue specific elements
-        // Example: Setup spinner, load overdue data to table, setup calculate button, etc.
         val calculateBtn = contentFrame.findViewById<Button>(R.id.btn_calculate_cheapest)
         calculateBtn?.setOnClickListener {
-            // Handle calculate cheapest way logic
             Toast.makeText(this, "Calculating cheapest payment plan...", Toast.LENGTH_SHORT).show()
-            // Implement calculation logic here
         }
     }
 
     private fun initializePenaltyView() {
-        // Initialize penalty specific elements
-        // Example: Setup spinner, load penalty data to table, etc.
+        // Setup penalty-specific elements
     }
 
     private fun fetchUsername() {
@@ -204,15 +180,9 @@ class dashboardActivity : AppCompatActivity() {
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     val username = document.getString("username")
-                    if (!username.isNullOrEmpty()) {
-                        menuUserName.text = username
-                    } else {
-                        Log.e("Firestore", "Username field is empty")
-                        menuUserName.text = "Guest"
-                    }
+                    menuUserName.text = username ?: "Guest"
                 } else {
                     Log.e("Firestore", "User document does not exist")
-                    Toast.makeText(this, "User data not found.", Toast.LENGTH_SHORT).show()
                     menuUserName.text = "Guest"
                 }
             }
@@ -221,5 +191,22 @@ class dashboardActivity : AppCompatActivity() {
                 Toast.makeText(this, "Failed to get username. Please check your internet connection.", Toast.LENGTH_LONG).show()
                 menuUserName.text = "Guest"
             }
+    }
+
+    private fun listenForBalanceUpdates() {
+        val userId = auth.currentUser?.uid ?: return
+        val userRef = db.collection("users").document(userId)
+
+        userRef.addSnapshotListener { documentSnapshot, e ->
+            if (e != null) {
+                Toast.makeText(this, "Failed to load balance: ${e.message}", Toast.LENGTH_SHORT).show()
+                return@addSnapshotListener
+            }
+
+            if (documentSnapshot != null && documentSnapshot.exists()) {
+                val balance = documentSnapshot.getDouble("balance") ?: 0.0
+                balanceTextView.text = "$balance"
+            }
+        }
     }
 }

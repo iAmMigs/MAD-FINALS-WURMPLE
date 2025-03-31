@@ -108,21 +108,40 @@ class TransactionDialogFragment : DialogFragment() {
 
     private fun saveTransaction(amount: Double, name: String, type: String) {
         val userId = auth.currentUser?.uid ?: return
+        val userRef = db.collection("users").document(userId)
 
-        val transactionData = hashMapOf(
-            "transaction_date" to Date(),
-            "transaction_name" to name,
-            "transaction_amount" to amount
-        )
+        db.runTransaction { transaction ->
+            val snapshot = transaction.get(userRef)
+            val currentBalance = snapshot.getDouble("balance") ?: 0.0
 
-        db.collection("users").document(userId)
-            .collection(type).add(transactionData)
-            .addOnSuccessListener {
-                Toast.makeText(requireContext(), "$type transaction added: $${amount}", Toast.LENGTH_SHORT).show()
-                dismiss()
+            val newBalance = if (type == "income") {
+                currentBalance + amount
+            } else {
+                if (currentBalance < amount) {
+                    requireActivity().runOnUiThread {
+                        Toast.makeText(requireContext(), "Insufficient balance for this expense!", Toast.LENGTH_SHORT).show()
+                    }
+                    return@runTransaction
+                }
+                currentBalance - amount
             }
-            .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Failed to add transaction: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
+
+            // Update balance in Firestore
+            transaction.update(userRef, "balance", newBalance)
+
+            // Save transaction details
+            val transactionData = hashMapOf(
+                "transaction_date" to Date(),
+                "transaction_name" to name,
+                "transaction_amount" to amount
+            )
+            db.collection("users").document(userId)
+                .collection(type).add(transactionData)
+        }.addOnSuccessListener {
+            Toast.makeText(requireContext(), "$type transaction added: $$amount", Toast.LENGTH_SHORT).show()
+            dismiss()
+        }.addOnFailureListener { e ->
+            Toast.makeText(requireContext(), "Failed to add transaction: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 }
