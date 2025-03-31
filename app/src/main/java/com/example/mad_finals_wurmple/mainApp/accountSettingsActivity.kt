@@ -34,6 +34,7 @@ class accountSettingsActivity : AppCompatActivity() {
     private lateinit var confirmPasswordInput: EditText
     private lateinit var updatePasswordButton: Button
     private lateinit var homeBtn: ImageButton
+    private lateinit var fabLogout: ImageButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +55,7 @@ class accountSettingsActivity : AppCompatActivity() {
         confirmPasswordInput = findViewById(R.id.ConfirmPassInput)
         updatePasswordButton = findViewById(R.id.UpdatePassButton)
         homeBtn = findViewById(R.id.homeButton)
+        fabLogout = findViewById(R.id.fab)
 
         // Setup tab switching functionality
         setupTabButtons()
@@ -63,6 +65,12 @@ class accountSettingsActivity : AppCompatActivity() {
 
         // Set up password update functionality
         setupPasswordUpdate()
+
+        // Set up logout functionality
+        setupLogout()
+
+        // Set up account deletion functionality
+        setupDeleteAccount()
     }
 
     private fun setupBottomNavigation() {
@@ -82,7 +90,11 @@ class accountSettingsActivity : AppCompatActivity() {
             val confirmPassword = confirmPasswordInput.text.toString().trim()
 
             if (newPassword != confirmPassword) {
-                Toast.makeText(this, "New password and confirm password do not match", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this,
+                    "New password and confirm password do not match",
+                    Toast.LENGTH_SHORT
+                ).show()
                 return@setOnClickListener
             }
 
@@ -92,7 +104,11 @@ class accountSettingsActivity : AppCompatActivity() {
             }
 
             if (newPassword.length < 6) {
-                Toast.makeText(this, "Password must be at least 6 characters long", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this,
+                    "Password must be at least 6 characters long",
+                    Toast.LENGTH_SHORT
+                ).show()
                 return@setOnClickListener
             }
 
@@ -109,18 +125,27 @@ class accountSettingsActivity : AppCompatActivity() {
                 if (task.isSuccessful) {
                     user.updatePassword(newPassword).addOnCompleteListener { updateTask ->
                         if (updateTask.isSuccessful) {
-                            Toast.makeText(this, "Password updated successfully", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                this,
+                                "Password updated successfully",
+                                Toast.LENGTH_SHORT
+                            ).show()
 
                             // Log out user and redirect to login screen after 2 seconds
                             auth.signOut()
                             android.os.Handler(Looper.getMainLooper()).postDelayed({
                                 val intent = Intent(this, LoginActivity::class.java)
-                                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                                intent.flags =
+                                    Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                                 startActivity(intent)
                                 finish() // Close account settings activity
                             }, 2000) // 2-second delay
                         } else {
-                            Toast.makeText(this, "Failed to update password. Try again.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                this,
+                                "Failed to update password. Try again.",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
                 } else {
@@ -186,5 +211,70 @@ class accountSettingsActivity : AppCompatActivity() {
         button.scaleX = 0.9f // Slightly smaller
         button.scaleY = 0.9f // Slightly smaller
         button.elevation = 0f
+    }
+
+    private fun setupLogout() {
+        fabLogout.setOnClickListener {
+            auth.signOut()
+            val intent = Intent(this, LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(intent)
+            finish()
+        }
+    }
+
+    private fun setupDeleteAccount() {
+        val deletePasswordInput = findViewById<EditText>(R.id.deleteAccountPasswordInput)
+        val confirmDeleteButton = findViewById<Button>(R.id.confirmDeleteButton)
+
+        confirmDeleteButton.setOnClickListener {
+            val password = deletePasswordInput.text.toString().trim()
+            val user = auth.currentUser
+
+            if (password.isEmpty()) {
+                Toast.makeText(this, "Please enter your password", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (user != null && user.email != null) {
+                val credential = EmailAuthProvider.getCredential(user.email!!, password)
+                user.reauthenticate(credential).addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        firestore.collection("users").document(user.uid).delete()
+                            .addOnSuccessListener {
+                                user.delete().addOnCompleteListener { deleteTask ->
+                                    if (deleteTask.isSuccessful) {
+                                        Toast.makeText(
+                                            this,
+                                            "Account deleted successfully",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        auth.signOut()
+                                        val intent = Intent(this, LoginActivity::class.java)
+                                        intent.flags =
+                                            Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                                        startActivity(intent)
+                                        finish()
+                                    } else {
+                                        Toast.makeText(
+                                            this,
+                                            "Failed to delete account",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            }.addOnFailureListener {
+                            Toast.makeText(
+                                this,
+                                "Failed to delete account data",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    } else {
+                        Toast.makeText(this, "Incorrect password", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
     }
 }

@@ -3,8 +3,11 @@ package com.example.mad_finals_wurmple.auth
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.KeyEvent
+import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -24,8 +27,6 @@ class ForgotPassActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.forgotpass_page)
 
-
-
         // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
 
@@ -38,6 +39,15 @@ class ForgotPassActivity : AppCompatActivity() {
             Log.d("RedirectLogin", "Button clicked")
             startActivity(Intent(this, LoginActivity::class.java))
         }
+
+        emailEditText.setOnEditorActionListener(TextView.OnEditorActionListener { _, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_DONE ||
+                (event != null && event.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_ENTER)) {
+                resetButton.performClick()
+                return@OnEditorActionListener true
+            }
+            false
+        })
 
         // Set onClickListener for RESET button
         resetButton.setOnClickListener {
