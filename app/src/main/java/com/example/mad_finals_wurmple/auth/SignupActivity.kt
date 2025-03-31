@@ -94,7 +94,8 @@ class SignupActivity : AppCompatActivity() {
                                         // Create user data
                                         val user = hashMapOf(
                                             "username" to username,
-                                            "email" to email
+                                            "email" to email,
+                                            "balance" to 0 // Initialize balance field with 0
                                         )
 
                                         // Save user data to Firestore
