@@ -24,6 +24,10 @@
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".mainApp.TransactionActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".mainApp.dashboardActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
