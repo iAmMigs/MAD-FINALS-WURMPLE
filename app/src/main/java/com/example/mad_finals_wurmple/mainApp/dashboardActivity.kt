@@ -12,6 +12,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.mad_finals_wurmple.R
 import com.example.mad_finals_wurmple.mainApp.transactionClasses.*
 import com.example.mad_finals_wurmple.mainApp.ui.HalfCircleProgressView
@@ -68,7 +69,6 @@ class dashboardActivity : AppCompatActivity() {
         goalBtn = findViewById(R.id.goalBtn)
         overduesBtn = findViewById(R.id.overduesBtn)
 
-
         // Initialize content frame
         contentFrame = findViewById(R.id.contentFrame)
 
@@ -98,6 +98,12 @@ class dashboardActivity : AppCompatActivity() {
 
         // Ensure goalProgress field exists in the database
         ensureGoalProgressFieldExists()
+
+        // Set up the payment dialog result handling
+        supportFragmentManager.setFragmentResultListener("payment_completed", this) { _, _ ->
+            // Refresh the overdue view when a payment is completed
+            refreshOverdueView()
+        }
     }
 
     private fun ensureGoalProgressFieldExists() {
@@ -141,7 +147,7 @@ class dashboardActivity : AppCompatActivity() {
             R.layout.goal_view -> initializeGoalView(view)
             R.layout.income_view -> initializeIncomeView()
             R.layout.expense_view -> initializeExpenseView(view) // Pass the view for initialization
-            R.layout.overdue_view -> initializeOverdueView()
+            R.layout.overdue_view -> initializeOverdueView(view) // Pass the view to match the constructor
         }
     }
 
@@ -192,16 +198,23 @@ class dashboardActivity : AppCompatActivity() {
         expenseHistoryManager = ExpenseHistoryManager(this, view)
     }
 
-    private fun initializeOverdueView() {
-        val overdueView = contentFrame.getChildAt(0)
-        overdueHistoryManager = OverdueHistoryManager(this, overdueView)
+    private fun initializeOverdueView(view: android.view.View) {
+        // Create a new instance of OverdueHistoryManager with supportFragmentManager
+        overdueHistoryManager = OverdueHistoryManager(this, view, supportFragmentManager)
 
-        // Call the overdue interest calculator
+        // Call the overdue interest calculator to update interest on all overdues
         overdueManager.calculateAndApplyOverdueInterest()
+    }
 
-        val calculateBtn = overdueView.findViewById<Button>(R.id.btn_calculate_cheapest)
-        calculateBtn?.setOnClickListener {
-            Toast.makeText(this, "Calculating cheapest payment plan...", Toast.LENGTH_SHORT).show()
+    // Method to refresh the overdue view after a payment is made
+    private fun refreshOverdueView() {
+        // Get the current view in the content frame
+        val currentView = contentFrame.getChildAt(0) ?: return
+
+        // Check if we're currently showing the overdue view
+        if (overdueHistoryManager != null) {
+            // Create a new instance of OverdueHistoryManager to refresh the data
+            overdueHistoryManager = OverdueHistoryManager(this, currentView, supportFragmentManager)
         }
     }
 
@@ -261,6 +274,12 @@ class dashboardActivity : AppCompatActivity() {
                             halfCircleProgress.setProgress(progressPercentage.toFloat().coerceAtMost(1f))
                         }
                     }
+                }
+
+                // Check if a payment has occurred and refresh overdue view if needed
+                if (overduesBtn.background.constantState == resources.getDrawable(R.drawable.button_selected).constantState) {
+                    // Only refresh if overdue view is currently active
+                    refreshOverdueView()
                 }
             }
         }

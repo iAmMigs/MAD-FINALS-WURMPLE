@@ -18,14 +18,14 @@
         android:textColor="@color/black" />
 
     <TextView
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="(each item has an overdue interest of 0.5% per day)"
-    android:textSize="16sp"
-    android:textStyle="bold"
-    android:layout_marginTop="-15dp"
-    android:gravity="center"
-    android:textColor="@color/black" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="(each item has an overdue interest of 0.5% per day)"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginTop="-15dp"
+        android:gravity="center"
+        android:textColor="@color/black" />
 
     <!-- Sort By Spinner -->
     <LinearLayout
@@ -61,73 +61,70 @@
         android:padding="12dp"
         android:layout_marginBottom="10dp"
         android:visibility="gone"/>
-
     <TableLayout
         android:id="@+id/tableLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:stretchColumns="*"
-        android:background="@android:color/darker_gray"
+        android:stretchColumns="1,2,3,4"
         android:divider="@android:color/black"
-        android:dividerHeight="5dp">
+        android:dividerHeight="1dp">
 
-        <TableRow>
+        <TableRow
+            android:background="@drawable/table_border">
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="48dp"
                 android:layout_height="wrap_content"
-                android:text="Select"
+                android:text="✓"
                 android:textStyle="bold"
                 android:padding="8dp"
                 android:gravity="center"
                 android:background="@drawable/table_border"
-                android:layout_margin="0dp"
                 android:textColor="@color/black"/>
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="2"
                 android:text="Name"
                 android:textStyle="bold"
                 android:padding="8dp"
                 android:gravity="center"
                 android:background="@drawable/table_border"
-                android:layout_margin="0dp"
                 android:textColor="@color/black"/>
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="2"
                 android:text="Amount"
                 android:textStyle="bold"
                 android:padding="8dp"
                 android:gravity="center"
                 android:background="@drawable/table_border"
-                android:layout_margin="0dp"
                 android:textColor="@color/black"/>
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="2"
                 android:text="Date"
                 android:textStyle="bold"
                 android:padding="8dp"
                 android:gravity="center"
                 android:background="@drawable/table_border"
-                android:layout_margin="0dp"
                 android:textColor="@color/black"/>
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Type"
+                android:layout_weight="2"
+                android:text="Status"
                 android:textStyle="bold"
                 android:padding="8dp"
                 android:gravity="center"
                 android:background="@drawable/table_border"
-                android:layout_margin="0dp"
                 android:textColor="@color/black"/>
         </TableRow>
-
     </TableLayout>
 
     <TextView
