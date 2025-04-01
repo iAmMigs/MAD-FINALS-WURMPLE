@@ -11,19 +11,17 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QuerySnapshot
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 import com.example.mad_finals_wurmple.R
 
-class IncomeHistoryManager(private val context: Context, private val view: View) {
+class ExpenseHistoryManager(private val context: Context, private val view: View) {
     private val tableLayout: TableLayout = view.findViewById(R.id.tableLayout)
     private val spinnerSort: Spinner = view.findViewById(R.id.spinner_sort)
-    private val incomeList = mutableListOf<IncomeData>()
+    private val expenseList = mutableListOf<ExpenseData>()
     private val db = FirebaseFirestore.getInstance()
 
-    data class IncomeData(
+    data class ExpenseData(
         val transactionId: String = "",
         val name: String = "",
         val amount: Double = 0.0,
@@ -32,7 +30,7 @@ class IncomeHistoryManager(private val context: Context, private val view: View)
 
     init {
         setupSpinner()
-        listenForIncomeDataChanges() // Use real-time updates instead of a one-time fetch
+        fetchExpenseData()
     }
 
     private fun setupSpinner() {
@@ -48,33 +46,33 @@ class IncomeHistoryManager(private val context: Context, private val view: View)
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
                 sortData(position)
             }
+
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
         })
     }
 
-    private fun listenForIncomeDataChanges() {
+    private fun fetchExpenseData() {
+        expenseList.clear()
         val userId = getCurrentUserId() ?: return
 
-        db.collection("users").document(userId).collection("income")
-            .addSnapshotListener { documents, exception ->
-                if (exception != null) {
-                    println("Error getting income data: $exception")
-                    return@addSnapshotListener
+        db.collection("users").document(userId).collection("expense")
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    val expenseData = ExpenseData(
+                        transactionId = document.id,
+                        name = document.getString("transaction_name") ?: "",
+                        amount = document.getDouble("transaction_amount") ?: 0.0,
+                        date = document.getTimestamp("transaction_date")?.toDate() ?: Date()
+                    )
+                    expenseList.add(expenseData)
                 }
 
-                if (documents != null) {
-                    incomeList.clear() // Clear the list before re-fetching data
-                    for (document in documents) {
-                        val incomeData = IncomeData(
-                            transactionId = document.id,
-                            name = document.getString("transaction_name") ?: "",
-                            amount = document.getDouble("transaction_amount") ?: 0.0,
-                            date = document.getTimestamp("transaction_date")?.toDate() ?: Date()
-                        )
-                        incomeList.add(incomeData)
-                    }
-                    sortData(spinnerSort.selectedItemPosition) // Re-sort after fetching the new data
-                }
+                println("Fetched Expense List: ${expenseList.size} items") // Debugging
+                sortData(spinnerSort.selectedItemPosition)
+            }
+            .addOnFailureListener { exception ->
+                println("Error getting expense data: $exception")
             }
     }
 
@@ -88,47 +86,48 @@ class IncomeHistoryManager(private val context: Context, private val view: View)
             5 -> bubbleSortBy { it.date.time } // Date (Oldest-Recent)
         }
 
-        updateTable() // Update table after sorting
+        println("Sorting option: $sortOption") // Debugging
+        updateTable()
     }
 
-    private fun <T : Comparable<T>> bubbleSortBy(selector: (IncomeData) -> T) {
-        for (i in 0 until incomeList.size - 1) {
-            for (j in 0 until incomeList.size - i - 1) {
-                if (selector(incomeList[j]) > selector(incomeList[j + 1])) {
-                    val temp = incomeList[j]
-                    incomeList[j] = incomeList[j + 1]
-                    incomeList[j + 1] = temp
+    private fun <T : Comparable<T>> bubbleSortBy(selector: (ExpenseData) -> T) {
+        for (i in 0 until expenseList.size - 1) {
+            for (j in 0 until expenseList.size - i - 1) {
+                if (selector(expenseList[j]) > selector(expenseList[j + 1])) {
+                    val temp = expenseList[j]
+                    expenseList[j] = expenseList[j + 1]
+                    expenseList[j + 1] = temp
                 }
             }
         }
     }
 
-    private fun <T : Comparable<T>> bubbleSortByDescending(selector: (IncomeData) -> T) {
-        for (i in 0 until incomeList.size - 1) {
-            for (j in 0 until incomeList.size - i - 1) {
-                if (selector(incomeList[j]) < selector(incomeList[j + 1])) {
-                    val temp = incomeList[j]
-                    incomeList[j] = incomeList[j + 1]
-                    incomeList[j + 1] = temp
+    private fun <T : Comparable<T>> bubbleSortByDescending(selector: (ExpenseData) -> T) {
+        for (i in 0 until expenseList.size - 1) {
+            for (j in 0 until expenseList.size - i - 1) {
+                if (selector(expenseList[j]) < selector(expenseList[j + 1])) {
+                    val temp = expenseList[j]
+                    expenseList[j] = expenseList[j + 1]
+                    expenseList[j + 1] = temp
                 }
             }
         }
     }
 
     private fun updateTable() {
-        tableLayout.removeViews(1, tableLayout.childCount - 1) // Remove old rows
+        tableLayout.removeViews(1, tableLayout.childCount - 1)
         val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
 
-        for (income in incomeList) {
+        for (expense in expenseList) {
             val tableRow = TableRow(context)
             tableRow.layoutParams = TableRow.LayoutParams(
                 TableRow.LayoutParams.MATCH_PARENT,
                 TableRow.LayoutParams.WRAP_CONTENT
             )
 
-            tableRow.addView(createTableCell(income.name))
-            tableRow.addView(createTableCell(String.format("$%.2f", income.amount)))
-            tableRow.addView(createTableCell(dateFormat.format(income.date)))
+            tableRow.addView(createTableCell(expense.name))
+            tableRow.addView(createTableCell(String.format("$%.2f", expense.amount)))
+            tableRow.addView(createTableCell(dateFormat.format(expense.date)))
 
             tableLayout.addView(tableRow)
         }
