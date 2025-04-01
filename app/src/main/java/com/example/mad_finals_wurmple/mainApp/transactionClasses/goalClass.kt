@@ -9,6 +9,7 @@ import android.widget.Toast
 import com.example.mad_finals_wurmple.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
 class goalClass(private val context: Context) {
     private val db = FirebaseFirestore.getInstance()
@@ -68,22 +69,95 @@ class goalClass(private val context: Context) {
         val userRef = db.collection("users").document(userId)
         userRef.get().addOnSuccessListener { document ->
             if (document.exists()) {
-                val goalProgress = document.getDouble("goalProgress") ?: 0.0
+                // Instead of using goalProgress field, calculate it based on balance
                 val goal = document.getDouble("goal") ?: 0.0
-                onProgressUpdated(goalProgress, goal)
+                val balance = document.getDouble("balance") ?: 0.0
+
+                // Check if there are any unpaid overdues
+                checkUnpaidOverdues { hasUnpaidOverdues ->
+                    if (hasUnpaidOverdues) {
+                        // If there are unpaid overdues, progress is 0
+                        onProgressUpdated(0.0, goal)
+                    } else {
+                        // If all overdues are paid, use balance as progress
+                        onProgressUpdated(balance, goal)
+                    }
+                }
             }
         }
     }
 
-    // Method to ensure the goalProgress field exists in the database
-    fun ensureGoalProgressFieldExists() {
+    // Helper method to check if there are any unpaid overdues
+    private fun checkUnpaidOverdues(callback: (Boolean) -> Unit) {
+        if (userId == null) {
+            callback(false)
+            return
+        }
+
+        db.collection("users").document(userId)
+            .collection("overdues")
+            .whereEqualTo("is_paid", false)
+            .limit(1) // We only need to know if at least one exists
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                // If the query returns any documents, there are unpaid overdues
+                callback(!querySnapshot.isEmpty)
+            }
+            .addOnFailureListener {
+                // On failure, assume no unpaid overdues for safety
+                callback(false)
+            }
+    }
+
+    // Method to ensure the goal field exists in the database
+    fun ensureGoalFieldExists() {
         if (userId == null) return
 
         val userRef = db.collection("users").document(userId)
         userRef.get().addOnSuccessListener { document ->
-            if (document.exists() && !document.contains("goalProgress")) {
-                // If goalProgress field doesn't exist, create it
-                userRef.update("goalProgress", 0.0)
+            if (document.exists()) {
+                val updates = mutableMapOf<String, Any>()
+
+                // Check if goal field exists, if not create it
+                if (!document.contains("goal")) {
+                    updates["goal"] = 0.0
+                }
+
+                // We no longer need the goalProgress field since we use balance
+                // But we'll keep it in the database for backward compatibility
+                if (!document.contains("goalProgress")) {
+                    updates["goalProgress"] = 0.0
+                }
+
+                // Only update if we have changes to make
+                if (updates.isNotEmpty()) {
+                    userRef.update(updates)
+                }
+            }
+        }
+    }
+
+    // Method to update goal progress in the UI without changing the database
+    // This is useful for immediate UI feedback while the database is being updated
+    fun updateGoalProgressUI(onProgressUpdated: (Double, Double) -> Unit) {
+        if (userId == null) return
+
+        val userRef = db.collection("users").document(userId)
+        userRef.get().addOnSuccessListener { document ->
+            if (document.exists()) {
+                val goal = document.getDouble("goal") ?: 0.0
+                val balance = document.getDouble("balance") ?: 0.0
+
+                // Check if there are any unpaid overdues
+                checkUnpaidOverdues { hasUnpaidOverdues ->
+                    if (hasUnpaidOverdues) {
+                        // If there are unpaid overdues, progress is 0
+                        onProgressUpdated(0.0, goal)
+                    } else {
+                        // If all overdues are paid, use balance as progress
+                        onProgressUpdated(balance, goal)
+                    }
+                }
             }
         }
     }
