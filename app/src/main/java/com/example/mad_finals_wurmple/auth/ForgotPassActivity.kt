@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.mad_finals_wurmple.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.firestore.FirebaseFirestore
 
 class ForgotPassActivity : AppCompatActivity() {
 
@@ -21,14 +22,16 @@ class ForgotPassActivity : AppCompatActivity() {
     private lateinit var emailEditText: EditText
     private lateinit var auth: FirebaseAuth
     private lateinit var redirectBackBtn: Button
+    private lateinit var db: FirebaseFirestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.forgotpass_page)
 
-        // Initialize Firebase Auth
+        // Initialize Firebase Auth and Firestore
         auth = FirebaseAuth.getInstance()
+        db = FirebaseFirestore.getInstance()
 
         // Initialize UI elements
         resetButton = findViewById(R.id.resetButton)
@@ -63,19 +66,87 @@ class ForgotPassActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Send password reset email
-            auth.sendPasswordResetEmail(email)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        Toast.makeText(this, "Password reset email sent. Check your inbox.", Toast.LENGTH_LONG).show()
-                    } else {
-                        val errorMessage = when (task.exception) {
-                            is FirebaseAuthInvalidUserException -> "No account found with this email."
-                            else -> "Error sending password reset email."
-                        }
-                        Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
-                    }
-                }
+            // Check if email exists before sending reset email
+            checkEmailExists(email)
         }
+    }
+
+    private fun checkEmailExists(email: String) {
+        // Show loading state
+        resetButton.isEnabled = false
+        resetButton.text = "Checking..."
+
+        // Method 1: Use Firestore to check if the email exists
+        db.collection("users")
+            .whereEqualTo("email", email)
+            .get()
+            .addOnSuccessListener { documents ->
+                if (!documents.isEmpty) {
+                    // Email exists in Firestore, send password reset email
+                    sendPasswordResetEmail(email)
+                } else {
+                    // Method 2: Use Firebase Auth's fetchSignInMethodsForEmail as a fallback
+                    auth.fetchSignInMethodsForEmail(email)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                val signInMethods = task.result?.signInMethods
+                                if (!signInMethods.isNullOrEmpty()) {
+                                    // Email exists in Firebase Auth, send password reset email
+                                    sendPasswordResetEmail(email)
+                                } else {
+                                    // Email does not exist
+                                    Toast.makeText(this, "No account found with this email", Toast.LENGTH_SHORT).show()
+                                    resetButton.isEnabled = true
+                                    resetButton.text = "RESET PASSWORD"
+                                }
+                            } else {
+                                // Error checking email
+                                Toast.makeText(this, "Error checking email: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                                resetButton.isEnabled = true
+                                resetButton.text = "RESET PASSWORD"
+                            }
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                // Error checking Firestore
+                Log.e("ForgotPassword", "Error checking email in Firestore", e)
+
+                // Try with fetchSignInMethodsForEmail as fallback
+                auth.fetchSignInMethodsForEmail(email)
+                    .addOnCompleteListener { task ->
+                        resetButton.isEnabled = true
+                        resetButton.text = "RESET PASSWORD"
+
+                        if (task.isSuccessful) {
+                            val signInMethods = task.result?.signInMethods
+                            if (!signInMethods.isNullOrEmpty()) {
+                                sendPasswordResetEmail(email)
+                            } else {
+                                Toast.makeText(this, "No account found with this email", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            Toast.makeText(this, "Error checking email: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+            }
+    }
+
+    private fun sendPasswordResetEmail(email: String) {
+        auth.sendPasswordResetEmail(email)
+            .addOnCompleteListener { task ->
+                resetButton.isEnabled = true
+                resetButton.text = "RESET PASSWORD"
+
+                if (task.isSuccessful) {
+                    Toast.makeText(this, "Password reset email sent. Check your inbox.", Toast.LENGTH_LONG).show()
+                } else {
+                    val errorMessage = when (task.exception) {
+                        is FirebaseAuthInvalidUserException -> "No account found with this email."
+                        else -> "Error sending password reset email: ${task.exception?.message}"
+                    }
+                    Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
+                }
+            }
     }
 }
