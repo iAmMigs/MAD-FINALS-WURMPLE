@@ -1,4 +1,4 @@
-﻿a# MAD-FINAL-Wurmple
+﻿MAD-FINAL-Wurmple
 
 - [ ] Group Members
     - Designer: Hans Peralta
