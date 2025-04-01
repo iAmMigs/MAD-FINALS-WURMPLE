@@ -96,24 +96,16 @@ class dashboardActivity : AppCompatActivity() {
         // Load the goal view by default
         loadViewIntoContentFrame(R.layout.goal_view)
 
-        // Ensure goalProgress field exists in the database
-        ensureGoalProgressFieldExists()
+        // Ensure goal field exists in the database
+        goalManager.ensureGoalFieldExists()
 
         // Set up the payment dialog result handling
         supportFragmentManager.setFragmentResultListener("payment_completed", this) { _, _ ->
             // Refresh the overdue view when a payment is completed
             refreshOverdueView()
-        }
-    }
-
-    private fun ensureGoalProgressFieldExists() {
-        val userId = auth.currentUser?.uid ?: return
-        val userRef = db.collection("users").document(userId)
-
-        userRef.get().addOnSuccessListener { document ->
-            if (document.exists() && !document.contains("goalProgress")) {
-                // Initialize goalProgress field if it doesn't exist
-                userRef.update("goalProgress", 0.0)
+            // Also update the goal view if it's visible, since payments affect goal progress
+            if (goalBtn.background.constantState == resources.getDrawable(R.drawable.button_selected).constantState) {
+                updateGoalView()
             }
         }
     }
@@ -146,8 +138,8 @@ class dashboardActivity : AppCompatActivity() {
         when (layoutResId) {
             R.layout.goal_view -> initializeGoalView(view)
             R.layout.income_view -> initializeIncomeView()
-            R.layout.expense_view -> initializeExpenseView(view) // Pass the view for initialization
-            R.layout.overdue_view -> initializeOverdueView(view) // Pass the view to match the constructor
+            R.layout.expense_view -> initializeExpenseView(view)
+            R.layout.overdue_view -> initializeOverdueView(view)
         }
     }
 
@@ -159,15 +151,12 @@ class dashboardActivity : AppCompatActivity() {
         val goalInputField = view.findViewById<EditText>(R.id.ConfirmInput)
         val setNewGoalButton = view.findViewById<Button>(R.id.btn_new_goal)
 
-        // Ensure goalProgress field exists
-        goalManager.ensureGoalProgressFieldExists()
-
-        // Update progress visualization with current data
+        // Update progress visualization with current data - now using account balance
         goalManager.getGoalProgress { progress, goal ->
             runOnUiThread {
                 // Update text views
-                currentAmountText.text = "$$progress"
-                goalAmountText.text = "$$goal"
+                currentAmountText.text = String.format("$%.2f", progress)
+                goalAmountText.text = String.format("$%.2f", goal)
 
                 // Calculate progress percentage for the half circle view
                 val progressPercentage = if (goal > 0) (progress / goal) else 0.0
@@ -179,12 +168,34 @@ class dashboardActivity : AppCompatActivity() {
         setNewGoalButton.setOnClickListener {
             goalManager.showConfirmationDialog(goalInputField) { newGoal ->
                 // This lambda is called when the goal is successfully updated
-                runOnUiThread {
-                    // Update the goal amount display
-                    goalAmountText.text = "$$newGoal"
-                    currentAmountText.text = "$0" // Reset progress display to 0
-                    halfCircleProgress.setProgress(0f) // Reset progress bar
-                }
+                // Update the goal amount display immediately after setting new goal
+                updateGoalView()
+            }
+        }
+    }
+
+    // New method to update the goal view
+    private fun updateGoalView() {
+        val view = contentFrame.getChildAt(0) ?: return
+        // Only proceed if we're currently on the goal view
+        if (goalBtn.background.constantState != resources.getDrawable(R.drawable.button_selected).constantState) {
+            return
+        }
+
+        val halfCircleProgress = view.findViewById<HalfCircleProgressView>(R.id.half_circle_progress) ?: return
+        val currentAmountText = view.findViewById<TextView>(R.id.tv_current_amount) ?: return
+        val goalAmountText = view.findViewById<TextView>(R.id.tv_goal_amount) ?: return
+
+        // Get fresh goal progress data
+        goalManager.getGoalProgress { progress, goal ->
+            runOnUiThread {
+                // Update text views
+                currentAmountText.text = String.format("$%.2f", progress)
+                goalAmountText.text = String.format("$%.2f", goal)
+
+                // Calculate progress percentage for the half circle view
+                val progressPercentage = if (goal > 0) (progress / goal) else 0.0
+                halfCircleProgress.setProgress(progressPercentage.toFloat().coerceAtMost(1f))
             }
         }
     }
@@ -212,7 +223,7 @@ class dashboardActivity : AppCompatActivity() {
         val currentView = contentFrame.getChildAt(0) ?: return
 
         // Check if we're currently showing the overdue view
-        if (overdueHistoryManager != null) {
+        if (overduesBtn.background.constantState == resources.getDrawable(R.drawable.button_selected).constantState) {
             // Create a new instance of OverdueHistoryManager to refresh the data
             overdueHistoryManager = OverdueHistoryManager(this, currentView, supportFragmentManager)
         }
@@ -257,23 +268,12 @@ class dashboardActivity : AppCompatActivity() {
 
             if (documentSnapshot != null && documentSnapshot.exists()) {
                 val balance = documentSnapshot.getDouble("balance") ?: 0.0
-                balanceTextView.text = "$balance"
+                balanceTextView.text = String.format("$%.2f", balance)
 
                 // Update goal progress whenever there's a database change
                 if (goalBtn.background.constantState == resources.getDrawable(R.drawable.button_selected).constantState) {
                     // Only update if goal view is currently active
-                    val view = contentFrame.getChildAt(0)
-                    val halfCircleProgress = view.findViewById<HalfCircleProgressView>(R.id.half_circle_progress)
-                    val currentAmountText = view.findViewById<TextView>(R.id.tv_current_amount)
-
-                    // Get the goal progress value from Firestore
-                    goalManager.getGoalProgress { progress, goal ->
-                        runOnUiThread {
-                            currentAmountText.text = "$$progress"
-                            val progressPercentage = if (goal > 0) (progress / goal) else 0.0
-                            halfCircleProgress.setProgress(progressPercentage.toFloat().coerceAtMost(1f))
-                        }
-                    }
+                    updateGoalView()
                 }
 
                 // Check if a payment has occurred and refresh overdue view if needed
