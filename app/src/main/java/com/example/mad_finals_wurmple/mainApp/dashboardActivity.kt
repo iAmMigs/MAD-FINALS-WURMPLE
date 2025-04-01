@@ -13,9 +13,7 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.example.mad_finals_wurmple.R
-import com.example.mad_finals_wurmple.mainApp.transactionClasses.IncomeHistoryManager
-import com.example.mad_finals_wurmple.mainApp.transactionClasses.ExpenseHistoryManager
-import com.example.mad_finals_wurmple.mainApp.transactionClasses.goalClass
+import com.example.mad_finals_wurmple.mainApp.transactionClasses.*
 import com.example.mad_finals_wurmple.mainApp.ui.HalfCircleProgressView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -34,7 +32,6 @@ class dashboardActivity : AppCompatActivity() {
     private lateinit var expensesBtn: Button
     private lateinit var goalBtn: Button
     private lateinit var overduesBtn: Button
-    private lateinit var penaltiesBtn: Button
 
     // Content frame to swap views
     private lateinit var contentFrame: FrameLayout
@@ -42,7 +39,9 @@ class dashboardActivity : AppCompatActivity() {
     // Managers for transactions
     private var incomeHistoryManager: IncomeHistoryManager? = null
     private var expenseHistoryManager: ExpenseHistoryManager? = null
+    private var overdueHistoryManager: OverdueHistoryManager? = null
     private lateinit var goalManager: goalClass
+    private lateinit var overdueManager: OverdueManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +54,7 @@ class dashboardActivity : AppCompatActivity() {
 
         // Initialize goal manager
         goalManager = goalClass(this)
+        overdueManager = OverdueManager(this)
 
         // Initialize UI elements
         menuUserName = findViewById(R.id.usernameText)
@@ -67,7 +67,7 @@ class dashboardActivity : AppCompatActivity() {
         expensesBtn = findViewById(R.id.expensesBtn)
         goalBtn = findViewById(R.id.goalBtn)
         overduesBtn = findViewById(R.id.overduesBtn)
-        penaltiesBtn = findViewById(R.id.penaltiesBtn)
+
 
         // Initialize content frame
         contentFrame = findViewById(R.id.contentFrame)
@@ -95,7 +95,6 @@ class dashboardActivity : AppCompatActivity() {
 
         // Load the goal view by default
         loadViewIntoContentFrame(R.layout.goal_view)
-        updateButtonStyles(goalBtn)
 
         // Ensure goalProgress field exists in the database
         ensureGoalProgressFieldExists()
@@ -116,27 +115,18 @@ class dashboardActivity : AppCompatActivity() {
     private fun setupTransactionButtons() {
         incomeBtn.setOnClickListener {
             loadViewIntoContentFrame(R.layout.income_view)
-            updateButtonStyles(incomeBtn)
         }
 
         expensesBtn.setOnClickListener {
             loadViewIntoContentFrame(R.layout.expense_view)
-            updateButtonStyles(expensesBtn)
         }
 
         goalBtn.setOnClickListener {
             loadViewIntoContentFrame(R.layout.goal_view)
-            updateButtonStyles(goalBtn)
         }
 
         overduesBtn.setOnClickListener {
             loadViewIntoContentFrame(R.layout.overdue_view)
-            updateButtonStyles(overduesBtn)
-        }
-
-        penaltiesBtn.setOnClickListener {
-            loadViewIntoContentFrame(R.layout.penalty_view)
-            updateButtonStyles(penaltiesBtn)
         }
     }
 
@@ -152,18 +142,7 @@ class dashboardActivity : AppCompatActivity() {
             R.layout.income_view -> initializeIncomeView()
             R.layout.expense_view -> initializeExpenseView(view) // Pass the view for initialization
             R.layout.overdue_view -> initializeOverdueView()
-            R.layout.penalty_view -> initializePenaltyView()
         }
-    }
-
-    private fun updateButtonStyles(selectedButton: Button) {
-        incomeBtn.setBackgroundResource(R.drawable.button_default)
-        expensesBtn.setBackgroundResource(R.drawable.button_default)
-        goalBtn.setBackgroundResource(R.drawable.button_default)
-        overduesBtn.setBackgroundResource(R.drawable.button_default)
-        penaltiesBtn.setBackgroundResource(R.drawable.button_default)
-
-        selectedButton.setBackgroundResource(R.drawable.button_selected)
     }
 
     private fun initializeGoalView(view: android.view.View) {
@@ -214,14 +193,16 @@ class dashboardActivity : AppCompatActivity() {
     }
 
     private fun initializeOverdueView() {
-        val calculateBtn = contentFrame.findViewById<Button>(R.id.btn_calculate_cheapest)
+        val overdueView = contentFrame.getChildAt(0)
+        overdueHistoryManager = OverdueHistoryManager(this, overdueView)
+
+        // Call the overdue interest calculator
+        overdueManager.calculateAndApplyOverdueInterest()
+
+        val calculateBtn = overdueView.findViewById<Button>(R.id.btn_calculate_cheapest)
         calculateBtn?.setOnClickListener {
             Toast.makeText(this, "Calculating cheapest payment plan...", Toast.LENGTH_SHORT).show()
         }
-    }
-
-    private fun initializePenaltyView() {
-        // Setup penalty-specific elements
     }
 
     private fun fetchUsername() {
