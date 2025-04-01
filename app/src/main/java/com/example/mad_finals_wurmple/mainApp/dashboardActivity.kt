@@ -12,6 +12,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.mad_finals_wurmple.R
 import com.example.mad_finals_wurmple.mainApp.transactionClasses.*
 import com.example.mad_finals_wurmple.mainApp.ui.HalfCircleProgressView
@@ -141,7 +142,7 @@ class dashboardActivity : AppCompatActivity() {
             R.layout.goal_view -> initializeGoalView(view)
             R.layout.income_view -> initializeIncomeView()
             R.layout.expense_view -> initializeExpenseView(view) // Pass the view for initialization
-            R.layout.overdue_view -> initializeOverdueView()
+            R.layout.overdue_view -> initializeOverdueView(view) // Pass the view to match the constructor
         }
     }
 
@@ -192,17 +193,15 @@ class dashboardActivity : AppCompatActivity() {
         expenseHistoryManager = ExpenseHistoryManager(this, view)
     }
 
-    private fun initializeOverdueView() {
-        val overdueView = contentFrame.getChildAt(0)
-        overdueHistoryManager = OverdueHistoryManager(this, overdueView)
+    private fun initializeOverdueView(view: android.view.View) {
+        // Pass the lifecycleScope as the CoroutineScope parameter
+        overdueHistoryManager = OverdueHistoryManager(this, view)
 
         // Call the overdue interest calculator
         overdueManager.calculateAndApplyOverdueInterest()
 
-        val calculateBtn = overdueView.findViewById<Button>(R.id.btn_calculate_cheapest)
-        calculateBtn?.setOnClickListener {
-            Toast.makeText(this, "Calculating cheapest payment plan...", Toast.LENGTH_SHORT).show()
-        }
+        // Note: we don't need this code block anymore as it's handled within OverdueHistoryManager
+        // The button and its listener are already set up in the OverdueHistoryManager class
     }
 
     private fun fetchUsername() {

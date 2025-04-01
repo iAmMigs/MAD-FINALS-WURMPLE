@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AlphaAnimation
 import android.widget.*
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.DialogFragment
@@ -49,6 +50,9 @@ class TransactionDialogFragment : DialogFragment() {
 
             // Setup event listeners
             setupEventListeners()
+
+            // Setup initial button and card states
+            setupInitialState()
         } catch (e: Exception) {
             Log.e(TAG, "Error in onCreateView: ${e.message}", e)
             Toast.makeText(context, "Error initializing transaction dialog: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -78,16 +82,49 @@ class TransactionDialogFragment : DialogFragment() {
         }
     }
 
+    private fun setupInitialState() {
+        try {
+            // Initially show the add amount card only
+            addAmountCard.visibility = View.VISIBLE
+            decreaseAmountCard.visibility = View.GONE
+
+            // Set initial button styles
+            setButtonActive(addAmountBtn)
+            setButtonInactive(decreaseAmountBtn)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up initial state: ${e.message}", e)
+            Toast.makeText(context, "Error setting up initial UI state: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun setupEventListeners() {
         try {
             addAmountBtn.setOnClickListener {
                 addAmountCard.visibility = View.VISIBLE
                 decreaseAmountCard.visibility = View.GONE
+
+                // Apply button styles
+                setButtonActive(addAmountBtn)
+                setButtonInactive(decreaseAmountBtn)
+
+                // Add animation
+                val fadeIn = AlphaAnimation(0f, 1f)
+                fadeIn.duration = 300
+                addAmountCard.startAnimation(fadeIn)
             }
 
             decreaseAmountBtn.setOnClickListener {
                 addAmountCard.visibility = View.GONE
                 decreaseAmountCard.visibility = View.VISIBLE
+
+                // Apply button styles
+                setButtonActive(decreaseAmountBtn)
+                setButtonInactive(addAmountBtn)
+
+                // Add animation
+                val fadeIn = AlphaAnimation(0f, 1f)
+                fadeIn.duration = 300
+                decreaseAmountCard.startAnimation(fadeIn)
             }
 
             closeButton.setOnClickListener {
@@ -119,6 +156,22 @@ class TransactionDialogFragment : DialogFragment() {
             Log.e(TAG, "Error setting up event listeners: ${e.message}", e)
             Toast.makeText(context, "Error setting up transaction actions: ${e.message}", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    // Function to make the selected button prominent
+    private fun setButtonActive(button: Button) {
+        button.alpha = 1f // Full opacity
+        button.scaleX = 1.0f
+        button.scaleY = 1.0f
+        button.elevation = 10f
+    }
+
+    // Function to make the inactive button slightly faded and smaller
+    private fun setButtonInactive(button: Button) {
+        button.alpha = 0.6f // Lower opacity
+        button.scaleX = 0.9f // Slightly smaller
+        button.scaleY = 0.9f // Slightly smaller
+        button.elevation = 0f
     }
 
     private fun validateTransaction(amountInput: EditText, nameInput: EditText): Boolean {
@@ -162,55 +215,67 @@ class TransactionDialogFragment : DialogFragment() {
             val userRef = db.collection("users").document(userId)
 
             db.runTransaction { transaction ->
-                try {
-                    val snapshot = transaction.get(userRef)
-                    val currentBalance = snapshot.getDouble("balance") ?: 0.0
-                    val currentGoalProgress = snapshot.getDouble("goalProgress") ?: 0.0
-                    val goal = snapshot.getDouble("goal") ?: 0.0
+                val snapshot = transaction.get(userRef)
+                val currentBalance = snapshot.getDouble("balance") ?: 0.0
+                val currentGoalProgress = snapshot.getDouble("goalProgress") ?: 0.0
+                val goal = snapshot.getDouble("goal") ?: 0.0
 
-                    // Prevent expenses from making the balance negative
-                    if (type == "expense" && amount > currentBalance) {
-                        throw IllegalArgumentException("Insufficient balance to complete this transaction.")
-                    }
+                // Handle expenses differently when balance is insufficient
+                var newBalance = currentBalance
+                var overdueAmount = 0.0
 
-                    // Calculate new balance
-                    val newBalance = if (type == "income") {
-                        currentBalance + amount
+                if (type == "expense") {
+                    if (amount > currentBalance) {
+                        // Create an overdue for the excess amount
+                        overdueAmount = amount - currentBalance
+                        newBalance = 0.0 // Set balance to zero
+                        // We'll create the overdue entry after transaction completes
                     } else {
-                        currentBalance - amount
+                        newBalance = currentBalance - amount
                     }
-
-                    // Calculate new goal progress
-                    var newGoalProgress = if (type == "income") {
-                        currentGoalProgress + amount
-                    } else {
-                        currentGoalProgress - amount
-                    }
-
-                    // Ensure goal progress stays within valid range (0 to goal amount)
-                    if (newGoalProgress < 0) newGoalProgress = 0.0
-                    if (goal > 0 && newGoalProgress > goal) newGoalProgress = goal
-
-                    // Update balance and goal progress
-                    transaction.update(userRef, mapOf(
-                        "balance" to newBalance,
-                        "goalProgress" to newGoalProgress
-                    ))
-
-                    return@runTransaction true // Success flag
-                } catch (e: IllegalArgumentException) {
-                    Log.e(TAG, "Transaction blocked: ${e.message}")
-                    return@runTransaction false // Fail flag
+                } else { // income
+                    newBalance = currentBalance + amount
                 }
-            }.addOnSuccessListener { success ->
-                if (success) {
-                    // Add transaction record
-                    addTransactionToCollection(userId, amount, name, type, Date())
-                    Toast.makeText(requireContext(), "$type transaction added: $$amount", Toast.LENGTH_SHORT).show()
-                    dismiss()
+
+                // Calculate new goal progress
+                var newGoalProgress = if (type == "income") {
+                    currentGoalProgress + amount
                 } else {
-                    Toast.makeText(requireContext(), "Transaction failed: Insufficient balance!", Toast.LENGTH_LONG).show()
+                    currentGoalProgress - amount
                 }
+
+                // Ensure goal progress stays within valid range (0 to goal amount)
+                if (newGoalProgress < 0) newGoalProgress = 0.0
+                if (goal > 0 && newGoalProgress > goal) newGoalProgress = goal
+
+                // Update balance and goal progress
+                transaction.update(userRef, mapOf(
+                    "balance" to newBalance,
+                    "goalProgress" to newGoalProgress
+                ))
+
+                return@runTransaction mapOf(
+                    "success" to true,
+                    "overdueAmount" to overdueAmount
+                )
+            }.addOnSuccessListener { result ->
+                // Check if there's an overdue amount to record
+                val overdueAmount = (result["overdueAmount"] as? Number)?.toDouble() ?: 0.0
+
+                // Add transaction record
+                addTransactionToCollection(userId, amount, name, type, Date())
+
+                // If there was an overdue amount, create an overdue entry
+                if (overdueAmount > 0) {
+                    createOverdueEntry(userId, name, overdueAmount)
+                    Toast.makeText(requireContext(),
+                        "$type transaction added: $$amount. Warning: Insufficient balance! $${overdueAmount.format(2)} added to overdues.",
+                        Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(requireContext(), "$type transaction added: $$amount", Toast.LENGTH_SHORT).show()
+                }
+
+                dismiss()
             }.addOnFailureListener { e ->
                 Log.e(TAG, "Transaction failed: ${e.message}", e)
                 Toast.makeText(requireContext(), "Failed to add transaction: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -220,6 +285,9 @@ class TransactionDialogFragment : DialogFragment() {
             Toast.makeText(context, "Error saving transaction: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
+
+    // Helper extension function to format Double to 2 decimal places
+    private fun Double.format(digits: Int) = String.format("%.${digits}f", this)
 
     private fun addTransactionToCollection(userId: String, amount: Double, name: String, type: String, date: Date) {
         try {

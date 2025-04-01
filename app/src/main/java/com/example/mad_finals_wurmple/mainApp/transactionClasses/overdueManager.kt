@@ -7,6 +7,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class OverdueManager(private val context: Context) {
     private val TAG = "OverdueManager"
@@ -163,7 +166,7 @@ class OverdueManager(private val context: Context) {
         }
     }
 
-    // Method to pay off an overdue
+    // Method to pay off an overdue (fixed transaction handling)
     fun payOverdue(overdueId: String, paymentAmount: Double, paymentName: String) {
         try {
             val userId = auth.currentUser?.uid
@@ -175,30 +178,17 @@ class OverdueManager(private val context: Context) {
             val overdueRef = db.collection("users").document(userId)
                 .collection("overdues").document(overdueId)
 
-            db.runTransaction { transaction ->
-                try {
-                    val overdueDoc = transaction.get(overdueRef)
-                    val currentOverdueAmount = overdueDoc.getDouble("transaction_amount") ?: 0.0
+            // First get the current overdue amount
+            overdueRef.get().addOnSuccessListener { overdueDoc ->
+                val currentOverdueAmount = overdueDoc.getDouble("transaction_amount") ?: 0.0
 
-                    if (paymentAmount >= currentOverdueAmount) {
-                        // Mark overdue as paid if payment covers full amount
-                        transaction.update(overdueRef, "is_paid", true)
+                if (paymentAmount >= currentOverdueAmount) {
+                    // Mark overdue as paid if payment covers full amount
+                    overdueRef.update("is_paid", true)
 
-                        // Return change amount if payment exceeds overdue
-                        currentOverdueAmount to (paymentAmount - currentOverdueAmount)
-                    } else {
-                        // Reduce overdue amount by payment
-                        transaction.update(overdueRef, "transaction_amount", currentOverdueAmount - paymentAmount)
-
-                        paymentAmount to 0.0
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error in payment transaction: ${e.message}", e)
-                    throw e // Re-throw to trigger the failure listener
-                }
-            }.addOnSuccessListener { result ->
-                try {
-                    val (amountPaid, change) = result as Pair<Double, Double>
+                    // Calculate change
+                    val change = paymentAmount - currentOverdueAmount
+                    val amountPaid = currentOverdueAmount
 
                     // Add the payment to income collection
                     addTransactionToCollection(
@@ -217,17 +207,109 @@ class OverdueManager(private val context: Context) {
                         "Payment successful. ${if (change > 0) "Change: $${String.format("%.2f", change)}" else ""}",
                         Toast.LENGTH_SHORT
                     ).show()
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error processing payment result: ${e.message}", e)
-                    Toast.makeText(context, "Error finalizing payment: ${e.message}", Toast.LENGTH_SHORT).show()
+                } else {
+                    // Reduce overdue amount by payment
+                    overdueRef.update("transaction_amount", currentOverdueAmount - paymentAmount)
+
+                    // Add the payment to income collection
+                    addTransactionToCollection(
+                        userId,
+                        paymentAmount,
+                        "Partial payment for overdue: $paymentName",
+                        "income",
+                        Date()
+                    )
+
+                    // Update user balance
+                    updateUserBalance(userId, paymentAmount)
+
+                    Toast.makeText(context, "Partial payment successful", Toast.LENGTH_SHORT).show()
                 }
             }.addOnFailureListener { e ->
-                Log.e(TAG, "Payment transaction failed: ${e.message}", e)
+                Log.e(TAG, "Failed to fetch overdue: ${e.message}", e)
                 Toast.makeText(context, "Payment failed: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error processing overdue payment: ${e.message}", e)
             Toast.makeText(context, "Error processing payment: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Added suspending version for use with the OverduePaymentOptimizer
+    suspend fun payOverdueSuspending(overdueId: String, paymentAmount: Double, paymentName: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                val userId = auth.currentUser?.uid
+                if (userId == null) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "User not logged in", Toast.LENGTH_SHORT).show()
+                    }
+                    return@withContext false
+                }
+
+                val overdueRef = db.collection("users").document(userId)
+                    .collection("overdues").document(overdueId)
+
+                // Get the current overdue amount
+                val overdueDoc = overdueRef.get().await()
+                val currentOverdueAmount = overdueDoc.getDouble("transaction_amount") ?: 0.0
+
+                if (paymentAmount >= currentOverdueAmount) {
+                    // Mark overdue as paid if payment covers full amount
+                    overdueRef.update("is_paid", true).await()
+
+                    // Calculate change
+                    val change = paymentAmount - currentOverdueAmount
+                    val amountPaid = currentOverdueAmount
+
+                    // Add the payment to income collection
+                    addTransactionToCollection(
+                        userId,
+                        amountPaid,
+                        "Payment for overdue: $paymentName",
+                        "income",
+                        Date()
+                    )
+
+                    // Update user balance
+                    updateUserBalance(userId, amountPaid)
+
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            context,
+                            "Payment successful. ${if (change > 0) "Change: $${String.format("%.2f", change)}" else ""}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                } else {
+                    // Reduce overdue amount by payment
+                    overdueRef.update("transaction_amount", currentOverdueAmount - paymentAmount).await()
+
+                    // Add the payment to income collection
+                    addTransactionToCollection(
+                        userId,
+                        paymentAmount,
+                        "Partial payment for overdue: $paymentName",
+                        "income",
+                        Date()
+                    )
+
+                    // Update user balance
+                    updateUserBalance(userId, paymentAmount)
+
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Partial payment successful", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                return@withContext true
+            } catch (e: Exception) {
+                Log.e(TAG, "Error processing overdue payment: ${e.message}", e)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error processing payment: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+                return@withContext false
+            }
         }
     }
 

@@ -78,40 +78,16 @@ class IncomeHistoryManager(private val context: Context, private val view: View)
 
     private fun sortData(sortOption: Int) {
         when (sortOption) {
-            0 -> bubbleSortBy { it.name.lowercase() } // Name (A-Z)
-            1 -> bubbleSortByDescending { it.name.lowercase() } // Name (Z-A)
-            2 -> bubbleSortBy { it.amount } // Amount (Low-High)
-            3 -> bubbleSortByDescending { it.amount } // Amount (High-Low)
-            4 -> bubbleSortByDescending { it.date.time } // Date (Recent-Oldest)
-            5 -> bubbleSortBy { it.date.time } // Date (Oldest-Recent)
+            0 -> SortData.insertionSortBy(incomeList) { it.name } // Name (A-Z)
+            1 -> SortData.insertionSortByDescending(incomeList) { it.name } // Name (Z-A)
+            2 -> SortData.insertionSortBy(incomeList) { it.amount } // Amount (Low-High)
+            3 -> SortData.insertionSortByDescending(incomeList) { it.amount } // Amount (High-Low)
+            4 -> SortData.insertionSortByDescending(incomeList) { it.date } // Date (Recent-Oldest)
+            5 -> SortData.insertionSortBy(incomeList) { it.date } // Date (Oldest-Recent)
         }
 
         println("Sorting option: $sortOption") // Debugging
         updateTable()
-    }
-
-    private fun <T : Comparable<T>> bubbleSortBy(selector: (IncomeData) -> T) {
-        for (i in 0 until incomeList.size - 1) {
-            for (j in 0 until incomeList.size - i - 1) {
-                if (selector(incomeList[j]) > selector(incomeList[j + 1])) {
-                    val temp = incomeList[j]
-                    incomeList[j] = incomeList[j + 1]
-                    incomeList[j + 1] = temp
-                }
-            }
-        }
-    }
-
-    private fun <T : Comparable<T>> bubbleSortByDescending(selector: (IncomeData) -> T) {
-        for (i in 0 until incomeList.size - 1) {
-            for (j in 0 until incomeList.size - i - 1) {
-                if (selector(incomeList[j]) < selector(incomeList[j + 1])) {
-                    val temp = incomeList[j]
-                    incomeList[j] = incomeList[j + 1]
-                    incomeList[j + 1] = temp
-                }
-            }
-        }
     }
 
     private fun updateTable() {
