@@ -11,10 +11,8 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QuerySnapshot
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 import com.example.mad_finals_wurmple.R
 
 class IncomeHistoryManager(private val context: Context, private val view: View) {
@@ -32,7 +30,7 @@ class IncomeHistoryManager(private val context: Context, private val view: View)
 
     init {
         setupSpinner()
-        listenForIncomeDataChanges() // Use real-time updates instead of a one-time fetch
+        fetchIncomeData()
     }
 
     private fun setupSpinner() {
@@ -48,33 +46,33 @@ class IncomeHistoryManager(private val context: Context, private val view: View)
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
                 sortData(position)
             }
+
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
         })
     }
 
-    private fun listenForIncomeDataChanges() {
+    private fun fetchIncomeData() {
+        incomeList.clear()
         val userId = getCurrentUserId() ?: return
 
         db.collection("users").document(userId).collection("income")
-            .addSnapshotListener { documents, exception ->
-                if (exception != null) {
-                    println("Error getting income data: $exception")
-                    return@addSnapshotListener
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    val incomeData = IncomeData(
+                        transactionId = document.id,
+                        name = document.getString("transaction_name") ?: "",
+                        amount = document.getDouble("transaction_amount") ?: 0.0,
+                        date = document.getTimestamp("transaction_date")?.toDate() ?: Date()
+                    )
+                    incomeList.add(incomeData)
                 }
 
-                if (documents != null) {
-                    incomeList.clear() // Clear the list before re-fetching data
-                    for (document in documents) {
-                        val incomeData = IncomeData(
-                            transactionId = document.id,
-                            name = document.getString("transaction_name") ?: "",
-                            amount = document.getDouble("transaction_amount") ?: 0.0,
-                            date = document.getTimestamp("transaction_date")?.toDate() ?: Date()
-                        )
-                        incomeList.add(incomeData)
-                    }
-                    sortData(spinnerSort.selectedItemPosition) // Re-sort after fetching the new data
-                }
+                println("Fetched Income List: ${incomeList.size} items") // Debugging
+                sortData(spinnerSort.selectedItemPosition)
+            }
+            .addOnFailureListener { exception ->
+                println("Error getting income data: $exception")
             }
     }
 
@@ -88,7 +86,8 @@ class IncomeHistoryManager(private val context: Context, private val view: View)
             5 -> bubbleSortBy { it.date.time } // Date (Oldest-Recent)
         }
 
-        updateTable() // Update table after sorting
+        println("Sorting option: $sortOption") // Debugging
+        updateTable()
     }
 
     private fun <T : Comparable<T>> bubbleSortBy(selector: (IncomeData) -> T) {
@@ -116,7 +115,7 @@ class IncomeHistoryManager(private val context: Context, private val view: View)
     }
 
     private fun updateTable() {
-        tableLayout.removeViews(1, tableLayout.childCount - 1) // Remove old rows
+        tableLayout.removeViews(1, tableLayout.childCount - 1)
         val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
 
         for (income in incomeList) {
