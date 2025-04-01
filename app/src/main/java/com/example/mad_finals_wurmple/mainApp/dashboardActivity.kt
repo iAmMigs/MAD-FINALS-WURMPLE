@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Button
+import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.TextView
@@ -14,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.mad_finals_wurmple.R
 import com.example.mad_finals_wurmple.mainApp.transactionClasses.IncomeHistoryManager
 import com.example.mad_finals_wurmple.mainApp.transactionClasses.ExpenseHistoryManager
+import com.example.mad_finals_wurmple.mainApp.transactionClasses.goalClass
+import com.example.mad_finals_wurmple.mainApp.ui.HalfCircleProgressView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -39,6 +42,7 @@ class dashboardActivity : AppCompatActivity() {
     // Managers for transactions
     private var incomeHistoryManager: IncomeHistoryManager? = null
     private var expenseHistoryManager: ExpenseHistoryManager? = null
+    private lateinit var goalManager: goalClass
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +52,9 @@ class dashboardActivity : AppCompatActivity() {
         // Initialize Firebase instances
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
+
+        // Initialize goal manager
+        goalManager = goalClass(this)
 
         // Initialize UI elements
         menuUserName = findViewById(R.id.usernameText)
@@ -83,10 +90,27 @@ class dashboardActivity : AppCompatActivity() {
             transactionDialog.show(supportFragmentManager, "TransactionDialog")
         }
 
-        // Setup transaction type button listeners
+        // Setup transaction type buttons listeners
         setupTransactionButtons()
 
-        // Default view is Goal (already included in layout)
+        // Load the goal view by default
+        loadViewIntoContentFrame(R.layout.goal_view)
+        updateButtonStyles(goalBtn)
+
+        // Ensure goalProgress field exists in the database
+        ensureGoalProgressFieldExists()
+    }
+
+    private fun ensureGoalProgressFieldExists() {
+        val userId = auth.currentUser?.uid ?: return
+        val userRef = db.collection("users").document(userId)
+
+        userRef.get().addOnSuccessListener { document ->
+            if (document.exists() && !document.contains("goalProgress")) {
+                // Initialize goalProgress field if it doesn't exist
+                userRef.update("goalProgress", 0.0)
+            }
+        }
     }
 
     private fun setupTransactionButtons() {
@@ -124,7 +148,7 @@ class dashboardActivity : AppCompatActivity() {
         contentFrame.addView(view)
 
         when (layoutResId) {
-            R.layout.goal_view -> initializeGoalView()
+            R.layout.goal_view -> initializeGoalView(view)
             R.layout.income_view -> initializeIncomeView()
             R.layout.expense_view -> initializeExpenseView(view) // Pass the view for initialization
             R.layout.overdue_view -> initializeOverdueView()
@@ -142,8 +166,42 @@ class dashboardActivity : AppCompatActivity() {
         selectedButton.setBackgroundResource(R.drawable.button_selected)
     }
 
-    private fun initializeGoalView() {
-        // Setup goal-specific elements
+    private fun initializeGoalView(view: android.view.View) {
+        // Get references to UI elements
+        val halfCircleProgress = view.findViewById<HalfCircleProgressView>(R.id.half_circle_progress)
+        val currentAmountText = view.findViewById<TextView>(R.id.tv_current_amount)
+        val goalAmountText = view.findViewById<TextView>(R.id.tv_goal_amount)
+        val goalInputField = view.findViewById<EditText>(R.id.ConfirmInput)
+        val setNewGoalButton = view.findViewById<Button>(R.id.btn_new_goal)
+
+        // Ensure goalProgress field exists
+        goalManager.ensureGoalProgressFieldExists()
+
+        // Update progress visualization with current data
+        goalManager.getGoalProgress { progress, goal ->
+            runOnUiThread {
+                // Update text views
+                currentAmountText.text = "$$progress"
+                goalAmountText.text = "$$goal"
+
+                // Calculate progress percentage for the half circle view
+                val progressPercentage = if (goal > 0) (progress / goal) else 0.0
+                halfCircleProgress.setProgress(progressPercentage.toFloat().coerceAtMost(1f))
+            }
+        }
+
+        // Set up the button to update the goal
+        setNewGoalButton.setOnClickListener {
+            goalManager.showConfirmationDialog(goalInputField) { newGoal ->
+                // This lambda is called when the goal is successfully updated
+                runOnUiThread {
+                    // Update the goal amount display
+                    goalAmountText.text = "$$newGoal"
+                    currentAmountText.text = "$0" // Reset progress display to 0
+                    halfCircleProgress.setProgress(0f) // Reset progress bar
+                }
+            }
+        }
     }
 
     private fun initializeIncomeView() {
@@ -206,6 +264,23 @@ class dashboardActivity : AppCompatActivity() {
             if (documentSnapshot != null && documentSnapshot.exists()) {
                 val balance = documentSnapshot.getDouble("balance") ?: 0.0
                 balanceTextView.text = "$balance"
+
+                // Update goal progress whenever there's a database change
+                if (goalBtn.background.constantState == resources.getDrawable(R.drawable.button_selected).constantState) {
+                    // Only update if goal view is currently active
+                    val view = contentFrame.getChildAt(0)
+                    val halfCircleProgress = view.findViewById<HalfCircleProgressView>(R.id.half_circle_progress)
+                    val currentAmountText = view.findViewById<TextView>(R.id.tv_current_amount)
+
+                    // Get the goal progress value from Firestore
+                    goalManager.getGoalProgress { progress, goal ->
+                        runOnUiThread {
+                            currentAmountText.text = "$$progress"
+                            val progressPercentage = if (goal > 0) (progress / goal) else 0.0
+                            halfCircleProgress.setProgress(progressPercentage.toFloat().coerceAtMost(1f))
+                        }
+                    }
+                }
             }
         }
     }
