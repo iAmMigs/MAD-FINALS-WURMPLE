@@ -69,7 +69,6 @@ class dashboardActivity : AppCompatActivity() {
         goalBtn = findViewById(R.id.goalBtn)
         overduesBtn = findViewById(R.id.overduesBtn)
 
-
         // Initialize content frame
         contentFrame = findViewById(R.id.contentFrame)
 
@@ -99,6 +98,12 @@ class dashboardActivity : AppCompatActivity() {
 
         // Ensure goalProgress field exists in the database
         ensureGoalProgressFieldExists()
+
+        // Set up the payment dialog result handling
+        supportFragmentManager.setFragmentResultListener("payment_completed", this) { _, _ ->
+            // Refresh the overdue view when a payment is completed
+            refreshOverdueView()
+        }
     }
 
     private fun ensureGoalProgressFieldExists() {
@@ -194,14 +199,23 @@ class dashboardActivity : AppCompatActivity() {
     }
 
     private fun initializeOverdueView(view: android.view.View) {
-        // Pass the lifecycleScope as the CoroutineScope parameter
-        overdueHistoryManager = OverdueHistoryManager(this, view)
+        // Create a new instance of OverdueHistoryManager with supportFragmentManager
+        overdueHistoryManager = OverdueHistoryManager(this, view, supportFragmentManager)
 
-        // Call the overdue interest calculator
+        // Call the overdue interest calculator to update interest on all overdues
         overdueManager.calculateAndApplyOverdueInterest()
+    }
 
-        // Note: we don't need this code block anymore as it's handled within OverdueHistoryManager
-        // The button and its listener are already set up in the OverdueHistoryManager class
+    // Method to refresh the overdue view after a payment is made
+    private fun refreshOverdueView() {
+        // Get the current view in the content frame
+        val currentView = contentFrame.getChildAt(0) ?: return
+
+        // Check if we're currently showing the overdue view
+        if (overdueHistoryManager != null) {
+            // Create a new instance of OverdueHistoryManager to refresh the data
+            overdueHistoryManager = OverdueHistoryManager(this, currentView, supportFragmentManager)
+        }
     }
 
     private fun fetchUsername() {
@@ -260,6 +274,12 @@ class dashboardActivity : AppCompatActivity() {
                             halfCircleProgress.setProgress(progressPercentage.toFloat().coerceAtMost(1f))
                         }
                     }
+                }
+
+                // Check if a payment has occurred and refresh overdue view if needed
+                if (overduesBtn.background.constantState == resources.getDrawable(R.drawable.button_selected).constantState) {
+                    // Only refresh if overdue view is currently active
+                    refreshOverdueView()
                 }
             }
         }

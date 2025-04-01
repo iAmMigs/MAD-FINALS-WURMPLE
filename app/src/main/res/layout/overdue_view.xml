@@ -61,22 +61,19 @@
         android:padding="12dp"
         android:layout_marginBottom="10dp"
         android:visibility="gone"/>
-
     <TableLayout
         android:id="@+id/tableLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:stretchColumns="*"
-        android:background="@android:color/darker_gray"
+        android:stretchColumns="1,2,3,4"
         android:divider="@android:color/black"
         android:dividerHeight="1dp">
 
         <TableRow
             android:background="@drawable/table_border">
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="48dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="✓"
                 android:textStyle="bold"
                 android:padding="8dp"
@@ -128,7 +125,6 @@
                 android:background="@drawable/table_border"
                 android:textColor="@color/black"/>
         </TableRow>
-
     </TableLayout>
 
     <TextView
