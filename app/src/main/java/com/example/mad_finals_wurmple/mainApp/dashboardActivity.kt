@@ -34,7 +34,6 @@ class dashboardActivity : AppCompatActivity() {
     private lateinit var expensesBtn: Button
     private lateinit var goalBtn: Button
     private lateinit var overduesBtn: Button
-    private lateinit var penaltiesBtn: Button
 
     // Content frame to swap views
     private lateinit var contentFrame: FrameLayout
@@ -67,7 +66,7 @@ class dashboardActivity : AppCompatActivity() {
         expensesBtn = findViewById(R.id.expensesBtn)
         goalBtn = findViewById(R.id.goalBtn)
         overduesBtn = findViewById(R.id.overduesBtn)
-        penaltiesBtn = findViewById(R.id.penaltiesBtn)
+
 
         // Initialize content frame
         contentFrame = findViewById(R.id.contentFrame)
@@ -133,11 +132,6 @@ class dashboardActivity : AppCompatActivity() {
             loadViewIntoContentFrame(R.layout.overdue_view)
             updateButtonStyles(overduesBtn)
         }
-
-        penaltiesBtn.setOnClickListener {
-            loadViewIntoContentFrame(R.layout.penalty_view)
-            updateButtonStyles(penaltiesBtn)
-        }
     }
 
     private fun loadViewIntoContentFrame(layoutResId: Int) {
@@ -152,7 +146,6 @@ class dashboardActivity : AppCompatActivity() {
             R.layout.income_view -> initializeIncomeView()
             R.layout.expense_view -> initializeExpenseView(view) // Pass the view for initialization
             R.layout.overdue_view -> initializeOverdueView()
-            R.layout.penalty_view -> initializePenaltyView()
         }
     }
 
@@ -161,8 +154,6 @@ class dashboardActivity : AppCompatActivity() {
         expensesBtn.setBackgroundResource(R.drawable.button_default)
         goalBtn.setBackgroundResource(R.drawable.button_default)
         overduesBtn.setBackgroundResource(R.drawable.button_default)
-        penaltiesBtn.setBackgroundResource(R.drawable.button_default)
-
         selectedButton.setBackgroundResource(R.drawable.button_selected)
     }
 
@@ -220,9 +211,6 @@ class dashboardActivity : AppCompatActivity() {
         }
     }
 
-    private fun initializePenaltyView() {
-        // Setup penalty-specific elements
-    }
 
     private fun fetchUsername() {
         val user = auth.currentUser
