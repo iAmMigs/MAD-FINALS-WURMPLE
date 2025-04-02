@@ -18,7 +18,7 @@
 <!-- TODO: Change the WD-Template-Project into the same name of your folder -->
 ![](https://visit-counter.vercel.app/counter.png?page=iammigs/MAD-FINALS-WURMPLE)
 
-[![wakatime](https://wakatime.com/badge/user/018dd99a-4985-4f98-8216-6ca6fe2ce0f8/project/63501637-9a31-42f0-960d-4d0ab47977f8.svg)](https://wakatime.com/badge/user/018dd99a-4985-4f98-8216-6ca6fe2ce0f8/project/63501637-9a31-42f0-960d-4d0ab47977f8)
+[![wakatime](https://wakatime.com/badge/user/99b0adb5-a66b-4ff3-872f-b2a0d42c5fca/project/bfe39e6c-303b-4129-b9c0-44ea0974fe86.svg)](https://wakatime.com/badge/user/99b0adb5-a66b-4ff3-872f-b2a0d42c5fca/project/bfe39e6c-303b-4129-b9c0-44ea0974fe86)
 
 ---
 
