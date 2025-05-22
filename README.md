@@ -18,9 +18,9 @@
 <!-- TODO: Change the WD-Template-Project into the same name of your folder -->
 ![](https://visit-counter.vercel.app/counter.png?page=iammigs/MAD-FINALS-WURMPLE)
 
-[![wakatime](https://wakatime.com/badge/user/99b0adb5-a66b-4ff3-872f-b2a0d42c5fca/project/bfe39e6c-303b-4129-b9c0-44ea0974fe86.svg)](https://wakatime.com/badge/user/99b0adb5-a66b-4ff3-872f-b2a0d42c5fca/project/bfe39e6c-303b-4129-b9c0-44ea0974fe86)
+imSuzume [![wakatime](https://wakatime.com/badge/user/99b0adb5-a66b-4ff3-872f-b2a0d42c5fca/project/bfe39e6c-303b-4129-b9c0-44ea0974fe86.svg)](https://wakatime.com/badge/user/99b0adb5-a66b-4ff3-872f-b2a0d42c5fca/project/bfe39e6c-303b-4129-b9c0-44ea0974fe86)
 
-[![wakatime](https://wakatime.com/badge/user/fe86aec1-b572-4bf9-bf34-8015a3695a2c/project/812fffd2-c1ce-4d68-8b85-7f131e0f70de.svg)](https://wakatime.com/badge/user/fe86aec1-b572-4bf9-bf34-8015a3695a2c/project/812fffd2-c1ce-4d68-8b85-7f131e0f70de)
+iAmMigs [![wakatime](https://wakatime.com/badge/user/fe86aec1-b572-4bf9-bf34-8015a3695a2c/project/812fffd2-c1ce-4d68-8b85-7f131e0f70de.svg)](https://wakatime.com/badge/user/fe86aec1-b572-4bf9-bf34-8015a3695a2c/project/812fffd2-c1ce-4d68-8b85-7f131e0f70de)
 
 ---
 
